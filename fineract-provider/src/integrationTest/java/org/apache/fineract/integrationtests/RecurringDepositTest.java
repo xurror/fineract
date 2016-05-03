@@ -30,8 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
-import net.sf.ehcache.transaction.xa.EhcacheXAException;
-
 import org.apache.fineract.accounting.common.AccountingConstants.FINANCIAL_ACTIVITY;
 import org.apache.fineract.integrationtests.common.ClientHelper;
 import org.apache.fineract.integrationtests.common.CommonConstants;
@@ -42,9 +40,7 @@ import org.apache.fineract.integrationtests.common.accounting.FinancialActivityA
 import org.apache.fineract.integrationtests.common.accounting.JournalEntry;
 import org.apache.fineract.integrationtests.common.accounting.JournalEntryHelper;
 import org.apache.fineract.integrationtests.common.accounting.Account.AccountType;
-import org.apache.fineract.integrationtests.common.fixeddeposit.FixedDepositAccountHelper;
 import org.apache.fineract.integrationtests.common.fixeddeposit.FixedDepositAccountStatusChecker;
-import org.apache.fineract.integrationtests.common.fixeddeposit.FixedDepositProductHelper;
 import org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositAccountHelper;
 import org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositAccountStatusChecker;
 import org.apache.fineract.integrationtests.common.recurringdeposit.RecurringDepositProductHelper;
@@ -64,7 +60,7 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.specification.RequestSpecification;
 import com.jayway.restassured.specification.ResponseSpecification;
 
-@SuppressWarnings({ "unused", "rawtypes", "unchecked", "static-access" })
+@SuppressWarnings({"unused", "rawtypes", "unchecked", "static-access" })
 public class RecurringDepositTest {
 
     private ResponseSpecification responseSpec;
