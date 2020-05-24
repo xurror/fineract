@@ -55,14 +55,11 @@ public class OfficeDomain {
     private String[] openingDate;
     private String hierarchy;
 
-    OfficeDomain() {
-        super();
-    }
+    OfficeDomain() { }
 
     private OfficeDomain(final int id, final String name,
             final String nameDecorated, final String externalId,
             final String[] openingDate, final String hierarchy) {
-        super();
         this.id = id;
         this.name = name;
         this.nameDecorated = nameDecorated;

@@ -52,9 +52,7 @@ public class BatchRequestsIntegrationTest {
     private ResponseSpecification responseSpec;
     private RequestSpecification requestSpec;
 
-    public BatchRequestsIntegrationTest() {
-        super();
-    }
+    public BatchRequestsIntegrationTest() { }
 
     /**
      * Sets up the essential settings for the TEST like contentType,

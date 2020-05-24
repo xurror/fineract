@@ -54,9 +54,7 @@ public class ResolutionHelper {
         private BatchRequest request;
         private final List<BatchRequestNode> childRequests = new ArrayList<>();
 
-        public BatchRequestNode() {
-            super();
-        }
+        public BatchRequestNode() { }
 
         public BatchRequest getRequest() {
             return this.request;

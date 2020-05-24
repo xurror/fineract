@@ -56,9 +56,7 @@ public class BatchApiTest {
     private ResponseSpecification responseSpec;
     private RequestSpecification requestSpec;
 
-    public BatchApiTest() {
-        super();
-    }
+    public BatchApiTest() { }
 
     /**
      * Sets up the essential settings for the TEST like contentType,

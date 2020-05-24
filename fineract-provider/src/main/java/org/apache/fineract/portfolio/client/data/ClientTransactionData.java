@@ -55,7 +55,6 @@ public class ClientTransactionData {
     private ClientTransactionData(Long id, Long officeId, String officeName, EnumOptionData type, LocalDate date, CurrencyData currency,
             PaymentDetailData paymentDetailData, BigDecimal amount, String externalId, LocalDate submittedOnDate, boolean reversed,
             Collection<PaymentTypeData> paymentTypeOptions) {
-        super();
         this.id = id;
         this.officeId = officeId;
         this.officeName = officeName;

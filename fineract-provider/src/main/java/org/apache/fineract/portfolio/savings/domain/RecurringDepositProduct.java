@@ -54,9 +54,7 @@ public class RecurringDepositProduct extends FixedDepositProduct {
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
     private DepositProductRecurringDetail recurringDetail;
 
-    protected RecurringDepositProduct() {
-        super();
-    }
+    protected RecurringDepositProduct() { }
 
     public static RecurringDepositProduct createNew(final String name, final String shortName, final String description,
             final MonetaryCurrency currency, final BigDecimal interestRate,

@@ -42,7 +42,6 @@ public class ModifyCashierCommandHandler implements NewCommandSourceHandler {
      */
     @Autowired
     public ModifyCashierCommandHandler(final CashierWritePlatformService writePlatformService) {
-        super();
         this.writePlatformService = writePlatformService;
     }
 

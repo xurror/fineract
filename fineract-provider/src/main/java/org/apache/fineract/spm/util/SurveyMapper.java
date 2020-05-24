@@ -31,9 +31,7 @@ import org.apache.fineract.spm.domain.Survey;
 
 public class SurveyMapper {
 
-    private SurveyMapper() {
-        super();
-    }
+    private SurveyMapper() { }
 
     public static SurveyData map(final Survey survey) {
         final SurveyData surveyData = new SurveyData(

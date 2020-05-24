@@ -57,9 +57,7 @@ public class Question extends AbstractPersistableCustom {
     @Column(name = "sequence_no", precision = 4)
     private Integer sequenceNo;
 
-    public Question() {
-        super();
-    }
+    public Question() { }
 
     public Survey getSurvey() {
         return survey;

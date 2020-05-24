@@ -30,9 +30,7 @@ import org.apache.fineract.spm.domain.Survey;
 
 public class LookupTableMapper {
 
-    private LookupTableMapper() {
-        super();
-    }
+    private LookupTableMapper() { }
 
     public static List<LookupTableData> map(final List<LookupTable> lookupTables) {
 

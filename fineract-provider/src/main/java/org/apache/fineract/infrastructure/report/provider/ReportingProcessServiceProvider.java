@@ -42,9 +42,7 @@ public class ReportingProcessServiceProvider implements ApplicationContextAware 
 
     Map<String, String> reportingProcessServices = null;
 
-    ReportingProcessServiceProvider() {
-        super();
-    }
+    ReportingProcessServiceProvider() { }
 
     public ReportingProcessService findReportingProcessService(final String reportType) {
         if (this.reportingProcessServices.containsKey(reportType)) { return (ReportingProcessService) this.applicationContext

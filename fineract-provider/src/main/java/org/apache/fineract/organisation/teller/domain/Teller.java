@@ -77,9 +77,7 @@ public class Teller extends AbstractPersistableCustom {
     @OneToMany(mappedBy = "teller", fetch = FetchType.LAZY)
     private Set<Cashier> cashiers;
 
-    public Teller() {
-        super();
-    }
+    public Teller() { }
 
     private Teller (final Office staffOffice, final String name, final String description, final LocalDate startDate,
             final LocalDate endDate, final TellerStatus status) {

@@ -26,13 +26,10 @@ public class LookupTableData {
     private String description;
     private List<LookupTableEntry> entries;
 
-    public LookupTableData() {
-        super();
-    }
+    public LookupTableData() { }
 
     public LookupTableData(final String key, final String description,
                            final List<LookupTableEntry> entries) {
-        super();
         this.key = key;
         this.description = description;
         this.entries = entries;

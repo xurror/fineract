@@ -46,7 +46,6 @@ public class UpdateTellerCommandHandler implements NewCommandSourceHandler {
      */
     @Autowired
     public UpdateTellerCommandHandler(final TellerWritePlatformService writePlatformService) {
-        super();
         this.writePlatformService = writePlatformService;
     }
 

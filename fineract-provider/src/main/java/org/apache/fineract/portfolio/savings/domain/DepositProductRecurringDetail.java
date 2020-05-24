@@ -39,9 +39,7 @@ public class DepositProductRecurringDetail extends AbstractPersistableCustom {
     @JoinColumn(name = "savings_product_id", nullable = false)
     private RecurringDepositProduct product;
 
-    protected DepositProductRecurringDetail() {
-        super();
-    }
+    protected DepositProductRecurringDetail() { }
 
     public static DepositProductRecurringDetail createNew(DepositRecurringDetail recurringDetail, SavingsProduct product) {
 

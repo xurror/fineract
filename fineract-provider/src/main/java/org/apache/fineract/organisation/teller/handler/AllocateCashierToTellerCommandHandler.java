@@ -39,7 +39,6 @@ public class AllocateCashierToTellerCommandHandler implements NewCommandSourceHa
      */
     @Autowired
     public AllocateCashierToTellerCommandHandler(final TellerWritePlatformService writePlatformService) {
-        super();
         this.writePlatformService = writePlatformService;
     }
 

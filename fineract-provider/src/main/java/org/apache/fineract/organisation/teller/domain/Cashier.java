@@ -86,9 +86,7 @@ public class Cashier extends AbstractPersistableCustom {
     /**
      * Creates a new cashier.
      */
-    public Cashier() {
-        super();
-    }
+    public Cashier() { }
 
     public static Cashier fromJson(final Office cashierOffice, final Teller teller, final Staff staff, final String startTime,
             final String endTime, final JsonCommand command) {

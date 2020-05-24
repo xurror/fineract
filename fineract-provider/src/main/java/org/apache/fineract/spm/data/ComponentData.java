@@ -26,13 +26,10 @@ public class ComponentData {
     private String description;
     private Integer sequenceNo;
 
-    public ComponentData() {
-        super();
-    }
+    public ComponentData() { }
 
     public ComponentData(final Long id, final String key, final String text,
                          final String description, final Integer sequenceNo) {
-        super();
         this.id = id;
         this.key = key;
         this.text = text;

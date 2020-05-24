@@ -46,9 +46,7 @@ public class Component extends AbstractPersistableCustom {
     @Column(name = "sequence_no", precision = 4)
     private Integer sequenceNo;
 
-    public Component() {
-        super();
-    }
+    public Component() { }
 
     public Survey getSurvey() {
         return survey;

@@ -79,7 +79,6 @@ public class TellerApiResource {
     public TellerApiResource(PlatformSecurityContext securityContext, DefaultToApiJsonSerializer<TellerData> jsonSerializer,
             TellerManagementReadPlatformService readPlatformService,
             PortfolioCommandSourceWritePlatformService commandWritePlatformService) {
-        super();
         this.securityContext = securityContext;
         this.jsonSerializer = jsonSerializer;
         this.readPlatformService = readPlatformService;

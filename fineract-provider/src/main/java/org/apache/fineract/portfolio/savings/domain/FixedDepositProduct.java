@@ -76,9 +76,7 @@ public class FixedDepositProduct extends SavingsProduct {
     @Transient
     protected InterestRateChartAssembler chartAssembler;
 
-    protected FixedDepositProduct() {
-        super();
-    }
+    protected FixedDepositProduct() { }
 
     public static FixedDepositProduct createNew(final String name, final String shortName, final String description,
             final MonetaryCurrency currency, final BigDecimal interestRate,

@@ -32,9 +32,7 @@ public class DateRange {
     private Date startDate;
     private Date endDate;
 
-    public DateRange() {
-        super();
-    }
+    public DateRange() { }
 
     public Date getStartDate() {
         return startDate;

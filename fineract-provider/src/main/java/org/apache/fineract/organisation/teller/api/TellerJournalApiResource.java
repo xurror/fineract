@@ -54,7 +54,6 @@ public class TellerJournalApiResource {
     @Autowired
     public TellerJournalApiResource(final PlatformSecurityContext securityContext,
             final DefaultToApiJsonSerializer<TellerData> jsonSerializer, final TellerManagementReadPlatformService readPlatformService) {
-        super();
         this.securityContext = securityContext;
         this.jsonSerializer = jsonSerializer;
         this.readPlatformService = readPlatformService;

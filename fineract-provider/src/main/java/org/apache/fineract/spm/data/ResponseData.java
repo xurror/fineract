@@ -25,13 +25,10 @@ public class ResponseData {
     private Integer value;
     private Integer sequenceNo;
 
-    public ResponseData() {
-        super();
-    }
+    public ResponseData() { }
 
     public ResponseData(final Long id, final String text, final Integer value,
                         final Integer sequenceNo) {
-        super();
         this.id = id;
         this.text = text;
         this.value = value;

@@ -56,9 +56,7 @@ public class ErrorHandler extends RuntimeException {
     /**
      * Sole Constructor
      */
-    ErrorHandler() {
-        super();
-    }
+    ErrorHandler() { }
 
     /**
      * Returns an object of ErrorInfo type containing the information regarding

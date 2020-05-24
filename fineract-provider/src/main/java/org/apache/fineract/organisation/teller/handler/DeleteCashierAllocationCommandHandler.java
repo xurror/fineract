@@ -46,7 +46,6 @@ public class DeleteCashierAllocationCommandHandler implements NewCommandSourceHa
      */
     @Autowired
     public DeleteCashierAllocationCommandHandler(final TellerWritePlatformService writePlatformService) {
-        super();
         this.writePlatformService = writePlatformService;
     }
 

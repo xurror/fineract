@@ -64,9 +64,7 @@ public class Scorecard extends AbstractPersistableCustom {
     @Column(name = "a_value", precision = 4)
     private Integer value;
 
-    public Scorecard() {
-        super();
-    }
+    public Scorecard() { }
 
     public Survey getSurvey() {
         return survey;

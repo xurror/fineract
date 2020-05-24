@@ -39,7 +39,6 @@ public class SettleCashFromCashierCommandHandler implements NewCommandSourceHand
      */
     @Autowired
     public SettleCashFromCashierCommandHandler(final TellerWritePlatformService writePlatformService) {
-        super();
         this.writePlatformService = writePlatformService;
     }
 

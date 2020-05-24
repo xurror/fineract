@@ -43,9 +43,7 @@ public class Response extends AbstractPersistableCustom {
     @Column(name = "sequence_no", precision = 4)
     private Integer sequenceNo;
 
-    public Response() {
-        super();
-    }
+    public Response() { }
 
     public Question getQuestion() {
         return question;

@@ -61,9 +61,7 @@ public class TellerTransaction extends AbstractPersistableCustom {
     @Column(name = "posting_date", nullable = false)
     private Date postingDate;
 
-    public TellerTransaction() {
-        super();
-    }
+    public TellerTransaction() { }
 
     public Office getOffice() {
         return office;

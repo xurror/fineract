@@ -64,9 +64,7 @@ public class Survey extends AbstractPersistableCustom {
     @Temporal(value = TemporalType.TIMESTAMP)
     private Date validTo;
 
-    public Survey() {
-        super();
-    }
+    public Survey() { }
 
     public List<Component> getComponents() {
         return components;

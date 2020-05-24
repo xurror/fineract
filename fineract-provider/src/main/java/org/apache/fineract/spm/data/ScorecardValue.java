@@ -27,9 +27,7 @@ public class ScorecardValue {
     private Integer value;
     private Date createdOn;
 
-    public ScorecardValue() {
-        super();
-    }
+    public ScorecardValue() { }
 
     private ScorecardValue(final Long questionId, final Long responseId, final Integer value, final Date createdOn) {
         this.questionId = questionId;

@@ -28,9 +28,7 @@ import org.springframework.stereotype.Component;
 @CommandType(entity = "HUMAN", action = "UPDATE")
 public class ValidCommandHandler implements NewCommandSourceHandler {
 
-    public ValidCommandHandler() {
-        super();
-    }
+    public ValidCommandHandler() { }
 
     @Override
     public CommandProcessingResult processCommand(JsonCommand command) {

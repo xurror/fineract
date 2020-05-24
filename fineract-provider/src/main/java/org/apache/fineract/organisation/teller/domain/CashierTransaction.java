@@ -80,9 +80,7 @@ public class CashierTransaction extends AbstractPersistableCustom {
     /**
      * Creates a new cashier.
      */
-    public CashierTransaction() {
-        super();
-    }
+    public CashierTransaction() { }
 
     public static CashierTransaction fromJson(
             final Cashier cashier,

@@ -31,9 +31,7 @@ public class ScorecardData {
     private String surveyName;
     private List<ScorecardValue> scorecardValues;
 
-    public ScorecardData() {
-        super();
-    }
+    public ScorecardData() { }
 
     private ScorecardData(final Long id, final Long userId, final String username, final Long surveyId, final String surveyName,
             final Long clientId) {

@@ -61,7 +61,6 @@ public class ClientNonPersonData implements Serializable {
 
     public ClientNonPersonData(CodeValueData constitution, String incorpNo, LocalDate incorpValidityTillDate,
             CodeValueData mainBusinessLine, String remarks) {
-        super();
         this.constitution = constitution;
         this.incorpNumber = incorpNo;
         this.incorpValidityTillDate = incorpValidityTillDate;

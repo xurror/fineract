@@ -42,9 +42,7 @@ public class CommandHandlerProviderTest {
     @Autowired
     private CommandHandlerProvider commandHandlerProvider;
 
-    public CommandHandlerProviderTest() {
-        super();
-    }
+    public CommandHandlerProviderTest() { }
 
     @Test
     public void shouldRegisterHandler() {

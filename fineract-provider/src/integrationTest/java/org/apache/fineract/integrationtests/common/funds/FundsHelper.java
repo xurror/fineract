@@ -46,13 +46,10 @@ public class FundsHelper {
     private String externalId;
     private Long resourceId;
 
-    FundsHelper() {
-        super();
-    }
+    FundsHelper() { }
 
     private FundsHelper(final String name,
                         final String externalId) {
-        super();
         this.name = name;
         this.externalId = externalId;
     }

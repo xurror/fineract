@@ -49,9 +49,7 @@ public class LookupTable extends AbstractPersistableCustom {
     @Column(name = "score", precision = 5, scale = 2)
     private Double score;
 
-    public LookupTable() {
-        super();
-    }
+    public LookupTable() { }
 
     public Survey getSurvey() {
         return survey;

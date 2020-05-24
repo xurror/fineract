@@ -90,9 +90,7 @@ public class DepositAccountTermAndPreClosure extends AbstractPersistableCustom {
     @Column(name = "transfer_interest_to_linked_account", nullable = false)
     private boolean transferInterestToLinkedAccount;
 
-    protected DepositAccountTermAndPreClosure() {
-        super();
-    }
+    protected DepositAccountTermAndPreClosure() { }
 
     public static DepositAccountTermAndPreClosure createNew(DepositPreClosureDetail preClosureDetail, DepositTermDetail depositTermDetail,
             SavingsAccount account, BigDecimal depositAmount, BigDecimal maturityAmount, final LocalDate maturityDate,
