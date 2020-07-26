@@ -745,7 +745,7 @@ configurations {
 }
 dependencies {
     driver 'org.drizzle.jdbc:drizzle-jdbc:1.4'
-    checkstyle 'com.puppycrawl.tools:checkstyle:8.34'
+    checkstyle 'com.puppycrawl.tools:checkstyle:8.35'
     checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.37.1'
 }
 
