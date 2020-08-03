@@ -81,7 +81,9 @@ dependencies {
             'com.github.spotbugs:spotbugs-annotations',
             'io.swagger.core.v3:swagger-annotations',
             'org.webjars:webjars-locator-core'
+
             )
+
     implementation ('org.apache.activemq:activemq-broker') {
         exclude group: 'org.apache.geronimo.specs'
     }
@@ -102,10 +104,57 @@ dependencies {
         exclude group: 'commons-logging'
     }
 
+    // https://javalibs.com/artifact/pentaho-reporting-engine
+    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-core:3.9.1.1') {
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions:3.9.1-GA'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting:3.9.1-GA'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-wizard-core:3.9.1-GA'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation ('pentaho-report-designer:pentaho-reporting-engine-wizard-xul:3.9.1-GA'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libbase:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libdocbundle:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libfonts:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libformat:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libformula:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libloader:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:librepository:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libserializer:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libsparkline:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    implementation('pentaho-library:libxml:1.2.8'){
+        exclude group: 'org.mnode.ical4j'
+    }
+    // https://javalibs.com/artifact/pentaho-reporting-engine ends here
+
     runtimeOnly('org.ehcache:ehcache') {
         exclude group: 'com.sun.activation'
     }
-
     // runtimeOnly dependencies are things that Fineract code has no direct compile time dependency on, but which must be present at run-time
     runtimeOnly(
             'org.apache.bval:org.apache.bval.bundle',
