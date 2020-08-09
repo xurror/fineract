@@ -77,7 +77,7 @@ dependencies {
             'org.dom4j:dom4j',
 
             'javax.cache:cache-api',
-            
+
             'pentaho-reporting-engine:pentaho-reporting-engine-classic-core',
             'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions',
             'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting',
@@ -93,7 +93,7 @@ dependencies {
             'pentaho-library:librepository',
             'pentaho-library:libserializer',
             'pentaho-library:libsparkline',
-            'pentaho-library:libxml',            
+            'pentaho-library:libxml',
 
             'com.github.spotbugs:spotbugs-annotations',
             'io.swagger.core.v3:swagger-annotations',
