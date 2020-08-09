@@ -26,7 +26,7 @@ buildDir = new File(rootProject.projectDir, "../build")
 repositories {
     jcenter()
     mavenCentral()
-    maven {url 'https://public.nexus.pentaho.org/content/groups/omni/'}
+    maven {url 'https://nexus.pentaho.org/content/groups/omni/'}
 }
 
 project.ext.jerseyVersion = '1.19.4'

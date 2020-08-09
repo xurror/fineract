@@ -77,6 +77,23 @@ dependencies {
             'org.dom4j:dom4j',
 
             'javax.cache:cache-api',
+            
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-core',
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions',
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting',
+            'pentaho-reporting-engine:pentaho-reporting-engine-wizard-core',
+            'pentaho-report-designer:pentaho-reporting-engine-wizard-xul',
+
+            'pentaho-library:libbase',
+            'pentaho-library:libdocbundle',
+            'pentaho-library:libfonts',
+            'pentaho-library:libformat',
+            'pentaho-library:libformula',
+            'pentaho-library:libloader',
+            'pentaho-library:librepository',
+            'pentaho-library:libserializer',
+            'pentaho-library:libsparkline',
+            'pentaho-library:libxml',            
 
             'com.github.spotbugs:spotbugs-annotations',
             'io.swagger.core.v3:swagger-annotations',
@@ -103,64 +120,6 @@ dependencies {
     implementation ('org.mnode.ical4j:ical4j') {
         exclude group: 'commons-logging'
     }
-
-    // https://javalibs.com/artifact/pentaho-reporting-engine
-  
-    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-core:3.9.1.1') {
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-    }
-    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions:3.9.1-GA'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-core:3.9.1.1'
-    }
-    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting:3.9.1-GA'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions:3.9.1-GA'
-    }
-    implementation ('pentaho-reporting-engine:pentaho-reporting-engine-wizard-core:3.9.1-GA'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions:3.9.1-GA'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting:3.9.1-GA'
-    }
-    implementation ('pentaho-report-designer:pentaho-reporting-engine-wizard-xul:3.9.1-GA'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions:3.9.1-GA'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting:3.9.1-GA'
-        exclude group: 'pentaho-reporting-engine:pentaho-reporting-engine-wizard-core:3.9.1-GA'
-    }
-
-    implementation('pentaho-library:libbase:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libdocbundle:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libfonts:1.2.8'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-    }
-    implementation('pentaho-library:libformat:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libformula:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libloader:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:librepository:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libserializer:1.2.8'){
-        exclude group: 'org.mnode.ical4j:ical4j:3.0.19'
-        exclude group: 'pentaho-library:libfonts:1.2.8'
-    }
-    implementation('pentaho-library:libsparkline:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    implementation('pentaho-library:libxml:1.2.8'){
-        exclude group: 'org.mnode.ical4j'
-    }
-    // https://javalibs.com/artifact/pentaho-reporting-engine ends here
 
 
     runtimeOnly('org.ehcache:ehcache') {
