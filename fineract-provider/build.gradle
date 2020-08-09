@@ -137,6 +137,30 @@ dependencyManagement {
             exclude 'pull-parser:pull-parser'
         }
 
+        dependency 'pentaho-reporting-engine:pentaho-reporting-engine-classic-core:3.9.1.1'
+        dependencySet(group:  'pentaho-reporting-engine', version: '3.9.1-GA'){
+            entry 'pentaho-reporting-engine-classic-extensions'
+            entry 'pentaho-reporting-engine-classic-extensions-scripting'
+            entry 'pentaho-reporting-engine-wizard-core'
+        }
+
+        dependencySet(group:  'pentaho-report-designer', version: '3.9.1-GA'){
+            entry 'pentaho-reporting-engine-wizard-xul'
+        }
+
+        dependencySet(group:  'pentaho-library', version: '1.2.8'){
+            entry 'libbase'
+            entry 'libdocbundle'
+            entry 'libfonts'
+            entry 'libformat'
+            entry 'libformula'
+            entry 'libloader'
+            entry 'librepository'
+            entry 'libserializer'
+            entry 'libsparkline'
+            entry 'libxml'
+        }
+
         dependencySet(group: 'com.sun.jersey', version: jerseyVersion) {
             entry 'jersey-core'
             entry 'jersey-servlet'
@@ -282,6 +306,7 @@ spotless {
 // Configuration for Apache Release Audit Tool task
 // https://github.com/eskatos/creadur-rat-gradle
 rat {
+    failOnError = false
     verbose = false
     reportDir = new File(buildDir,'reports/rat')
     excludes = [
