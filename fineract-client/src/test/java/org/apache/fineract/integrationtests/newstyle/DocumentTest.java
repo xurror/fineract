@@ -83,7 +83,7 @@ public class DocumentTest extends IntegrationTest {
         ResponseBody r = ok(fineract().documents.downloadFile("clients", clientId, documentId));
         assertThat(r.contentType()).isEqualTo(MediaType.get("image/jpeg"));
         assertThat(r.bytes().length).isEqualTo(testFile.length());
-        // NOK: assertThat(r.contentLength()).isEqualTo(testFile.length());
+        assertThat(r.contentLength()).isEqualTo(-1); // TODO testFile.length()
     }
 
     @Test
