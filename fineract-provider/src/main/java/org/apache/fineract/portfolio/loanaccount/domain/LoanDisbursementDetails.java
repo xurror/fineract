@@ -20,7 +20,6 @@ package org.apache.fineract.portfolio.loanaccount.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.Objects;
 import javax.persistence.Column;
@@ -31,6 +30,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
+import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.portfolio.loanaccount.data.DisbursementData;
 
 @Entity
@@ -103,7 +103,7 @@ public class LoanDisbursementDetails extends AbstractPersistableCustom {
     public LocalDate expectedDisbursementDateAsLocalDate() {
         LocalDate expectedDisburseDate = null;
         if (this.expectedDisbursementDate != null) {
-            expectedDisburseDate = LocalDate.ofInstant(this.expectedDisbursementDate.toInstant(), ZoneId.systemDefault());
+            expectedDisburseDate = LocalDate.ofInstant(this.expectedDisbursementDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return expectedDisburseDate;
     }
@@ -132,7 +132,7 @@ public class LoanDisbursementDetails extends AbstractPersistableCustom {
         LocalDate expectedDisburseDate = expectedDisbursementDateAsLocalDate();
         LocalDate actualDisburseDate = null;
         if (this.actualDisbursementDate != null) {
-            actualDisburseDate = LocalDate.ofInstant(this.actualDisbursementDate.toInstant(), ZoneId.systemDefault());
+            actualDisburseDate = LocalDate.ofInstant(this.actualDisbursementDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         BigDecimal waivedChargeAmount = null;
         return new DisbursementData(getId(), expectedDisburseDate, actualDisburseDate, this.principal, this.netDisbursalAmount, null, null,
