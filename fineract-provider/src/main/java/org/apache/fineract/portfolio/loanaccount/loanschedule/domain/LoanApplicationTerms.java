@@ -777,7 +777,7 @@ public final class LoanApplicationTerms {
 
     private BigDecimal calculateFlatInterestRateForLoanTerm(final PaymentPeriodsInOneYearCalculator calculator, final MathContext mc) {
 
-        final BigDecimal divisor = BigDecimal.valueOf(Double.valueOf("100.0"));
+        final BigDecimal divisor = BigDecimal.valueOf(Double.parseDouble("100.0"));
 
         final long loanTermPeriodsInOneYear = calculatePeriodsInOneYear(calculator);
         final BigDecimal loanTermPeriodsInYearBigDecimal = BigDecimal.valueOf(loanTermPeriodsInOneYear);
@@ -1017,7 +1017,7 @@ public final class LoanApplicationTerms {
 
         final long loanTermPeriodsInOneYear = calculatePeriodsInOneYear(calculator);
 
-        final BigDecimal divisor = BigDecimal.valueOf(Double.valueOf("100.0"));
+        final BigDecimal divisor = BigDecimal.valueOf(Double.parseDouble("100.0"));
         final BigDecimal loanTermPeriodsInYearBigDecimal = BigDecimal.valueOf(loanTermPeriodsInOneYear);
 
         BigDecimal periodicInterestRate = BigDecimal.ZERO;
@@ -1103,7 +1103,7 @@ public final class LoanApplicationTerms {
             repaymentEvery = getPeriodsBetween(fromDate, toDate);
         }
 
-        final BigDecimal divisor = BigDecimal.valueOf(Double.valueOf("100.0"));
+        final BigDecimal divisor = BigDecimal.valueOf(Double.parseDouble("100.0"));
         final BigDecimal loanTermPeriodsInYearBigDecimal = BigDecimal.valueOf(loanTermPeriodsInOneYear);
         final BigDecimal oneDayOfYearInterestRate = this.annualNominalInterestRate.divide(loanTermPeriodsInYearBigDecimal, mc)
                 .divide(divisor, mc);
@@ -1280,7 +1280,7 @@ public final class LoanApplicationTerms {
                 interest = interest.zero();
                 fraction = fraction - Integer.valueOf(1).doubleValue();
 
-            } else if (interestCalculationGraceOnRepaymentPeriodFraction > Double.valueOf("0.25")
+            } else if (interestCalculationGraceOnRepaymentPeriodFraction > Double.parseDouble("0.25")
                     && interestCalculationGraceOnRepaymentPeriodFraction < Integer.valueOf(1).doubleValue()) {
 
                 final Money graceOnInterestForRepaymentPeriod = interest.multipliedBy(interestCalculationGraceOnRepaymentPeriodFraction);
@@ -1293,7 +1293,7 @@ public final class LoanApplicationTerms {
     }
 
     private boolean isInterestFreeGracePeriodFromDate(final double interestCalculationGraceOnRepaymentPeriodFraction) {
-        return this.interestChargedFromDate != null && interestCalculationGraceOnRepaymentPeriodFraction > Double.valueOf("0.0");
+        return this.interestChargedFromDate != null && interestCalculationGraceOnRepaymentPeriodFraction > Double.parseDouble("0.0");
     }
 
     private Money calculateEqualPrincipalDueForInstallment(final MathContext mc, final int periodNumber) {

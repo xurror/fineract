@@ -417,7 +417,7 @@ public class LoanDisbursementDetailsIntegrationTest {
         /* Validate Edit */
         ArrayList<HashMap> disbursementDetails = (ArrayList<HashMap>) this.loanTransactionHelper.getLoanDetail(this.requestSpec,
                 this.responseSpec, this.loanID, "disbursementDetails");
-        assertEquals(Float.valueOf(updatedPrincipal), disbursementDetails.get(0).get("principal"));
+        assertEquals(Float.parseFloat(updatedPrincipal), disbursementDetails.get(0).get("principal"));
         ArrayList expectedDisbursementDate = (ArrayList) disbursementDetails.get(0).get("expectedDisbursementDate");
         String date = formatExpectedDisbursementDate(expectedDisbursementDate.toString());
         assertEquals(updatedExpectedDisbursementDate, date);
