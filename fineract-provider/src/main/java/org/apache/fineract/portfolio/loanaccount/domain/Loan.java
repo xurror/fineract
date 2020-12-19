@@ -342,6 +342,9 @@ public class Loan extends AbstractPersistableCustom {
     @Column(name = "approved_principal", scale = 6, precision = 19, nullable = false)
     private BigDecimal approvedPrincipal;
 
+    @Column(name = "net_disbursal_amount", scale = 6, precision = 19, nullable = false)
+    private BigDecimal netDisbursalAmount;
+
     @Column(name = "fixed_emi_amount", scale = 6, precision = 19, nullable = true)
     private BigDecimal fixedEmiAmount;
 
@@ -517,6 +520,14 @@ public class Loan extends AbstractPersistableCustom {
 
         // rates added here
         this.rates = rates;
+
+        // Add net get net disbursal amount from charges and principal
+        this.netDisbursalAmount = this.approvedPrincipal;
+        if (loanCharges != null && !loanCharges.isEmpty()) {
+            for (LoanCharge charge : loanCharges) {
+                this.netDisbursalAmount = this.netDisbursalAmount.subtract(charge.amount());
+            }
+        }
 
     }
 
@@ -1845,7 +1856,7 @@ public class Loan extends AbstractPersistableCustom {
             if (loanDisbursementDetail.actualDisbursementDate() == null) {
                 Date actualDisbursementDate = null;
                 LoanDisbursementDetails disbursementDetails = new LoanDisbursementDetails(expectedDisbursementDate, actualDisbursementDate,
-                        principal);
+                        principal, this.netDisbursalAmount);
                 disbursementDetails.updateLoan(this);
                 if (!loanDisbursementDetail.equals(disbursementDetails)) {
                     loanDisbursementDetail.copy(disbursementDetails);
@@ -1856,7 +1867,7 @@ public class Loan extends AbstractPersistableCustom {
         } else {
             Date actualDisbursementDate = null;
             LoanDisbursementDetails disbursementDetails = new LoanDisbursementDetails(expectedDisbursementDate, actualDisbursementDate,
-                    principal);
+                    principal, this.netDisbursalAmount);
             disbursementDetails.updateLoan(this);
             this.disbursementDetails.add(disbursementDetails);
             for (LoanTrancheCharge trancheCharge : trancheCharges) {
@@ -2181,6 +2192,9 @@ public class Loan extends AbstractPersistableCustom {
 
             BigDecimal approvedLoanAmount = command.bigDecimalValueOfParameterNamed(LoanApiConstants.approvedLoanAmountParameterName);
 
+            BigDecimal netDisbursalAmount = command
+                    .bigDecimalValueOfParameterNamed(LoanApiConstants.disbursementNetDisbursalAmountParameterName);
+
             if (approvedLoanAmount != null) {
 
                 // Approved amount has to be less than or equal to principal
@@ -2199,6 +2213,7 @@ public class Loan extends AbstractPersistableCustom {
 
                     actualChanges.put(LoanApiConstants.approvedLoanAmountParameterName, approvedLoanAmount);
                     actualChanges.put(LoanApiConstants.disbursementPrincipalParameterName, approvedLoanAmount);
+                    actualChanges.put(LoanApiConstants.disbursementNetDisbursalAmountParameterName, netDisbursalAmount);
                 } else if (approvedLoanAmount.compareTo(this.proposedPrincipal) > 0) {
                     final String errorMessage = "Loan approved amount can't be greater than loan amount demanded.";
                     throw new InvalidLoanStateTransitionException("approval", "amount.can't.be.greater.than.loan.amount.demanded",
@@ -4360,7 +4375,7 @@ public class Loan extends AbstractPersistableCustom {
     }
 
     public boolean isSyncDisbursementWithMeeting() {
-        return this.syncDisbursementWithMeeting == null ? false : this.syncDisbursementWithMeeting;
+        return this.syncDisbursementWithMeeting != null && this.syncDisbursementWithMeeting;
     }
 
     public Date getClosedOnDate() {
@@ -5096,6 +5111,14 @@ public class Loan extends AbstractPersistableCustom {
         return this.approvedPrincipal;
     }
 
+    public BigDecimal getNetDisbursalAmount() {
+        return netDisbursalAmount;
+    }
+
+    public void setNetDisbursalAmount(BigDecimal netDisbursalAmount) {
+        this.netDisbursalAmount = netDisbursalAmount;
+    }
+
     public BigDecimal getTotalOverpaid() {
         return this.totalOverpaid;
     }
@@ -5677,7 +5700,7 @@ public class Loan extends AbstractPersistableCustom {
             }
             BigDecimal waivedChargeAmount = null;
             disbursementData.add(new DisbursementData(loanDisbursementDetails.getId(), expectedDisbursementDate, actualDisbursementDate,
-                    loanDisbursementDetails.principal(), null, null, waivedChargeAmount));
+                    loanDisbursementDetails.principal(), this.netDisbursalAmount, null, null, waivedChargeAmount));
         }
 
         return disbursementData;
