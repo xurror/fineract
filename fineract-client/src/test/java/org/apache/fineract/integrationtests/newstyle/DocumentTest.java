@@ -43,7 +43,7 @@ public class DocumentTest extends IntegrationTest {
 
     @Test
     @Order(1)
-	void retrieveAllDocuments() {
+    void retrieveAllDocuments() {
         assertThat(ok(fineract().documents.retrieveAllDocuments("clients", clientId))).isNotNull();
     }
 
