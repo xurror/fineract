@@ -70,7 +70,6 @@ public class DefaultScheduledDateGenerator implements ScheduledDateGenerator {
             }
             LocalDate seedDate = null;
             String reccuringString = null;
-            boolean isLeapYear = this.isLeapYear(lastRepaymentDate.getYear());
             Calendar currentCalendar = loanApplicationTerms.getLoanCalendar();
 
             if (loanApplicationTerms.getRepaymentPeriodFrequencyType().isSemiMonthly() && !isFirstRepayment) {
