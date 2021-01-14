@@ -21,7 +21,6 @@ package org.apache.fineract.integrationtests;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import java.text.DateFormat;
@@ -70,9 +69,7 @@ public class ConcurrencyIntegrationTest {
         final Integer loanProductID = createLoanProduct(false, NO_ACCOUNTING);
         final Integer loanID = applyForLoanApplication(clientID, loanProductID, "12,000.00");
         this.loanTransactionHelper.approveLoan("20 September 2011", loanID);
-        String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
-        this.loanTransactionHelper.disburseLoan("20 September 2011", loanID, "12,000.00",
-                JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan("20 September 2011", loanID, "12,000.00");
 
         ExecutorService executor = Executors.newFixedThreadPool(MYTHREADS);
         Calendar date = Calendar.getInstance();

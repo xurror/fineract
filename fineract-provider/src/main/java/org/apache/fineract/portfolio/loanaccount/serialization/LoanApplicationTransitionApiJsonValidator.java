@@ -62,11 +62,10 @@ public final class LoanApplicationTransitionApiJsonValidator {
             throw new InvalidJsonException();
         }
 
-        final Set<String> disbursementParameters = new HashSet<>(
-                Arrays.asList(LoanApiConstants.loanIdTobeApproved, LoanApiConstants.approvedLoanAmountParameterName,
-                        LoanApiConstants.approvedOnDateParameterName, LoanApiConstants.disbursementNetDisbursalAmountParameterName,
-                        LoanApiConstants.noteParameterName, LoanApiConstants.localeParameterName, LoanApiConstants.dateFormatParameterName,
-                        LoanApiConstants.disbursementDataParameterName, LoanApiConstants.disbursementDateParameterName));
+        final Set<String> disbursementParameters = new HashSet<>(Arrays.asList(LoanApiConstants.loanIdTobeApproved,
+                LoanApiConstants.approvedLoanAmountParameterName, LoanApiConstants.approvedOnDateParameterName,
+                LoanApiConstants.noteParameterName, LoanApiConstants.localeParameterName, LoanApiConstants.dateFormatParameterName,
+                LoanApiConstants.disbursementDataParameterName, LoanApiConstants.disbursementDateParameterName));
 
         final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, disbursementParameters);
@@ -80,11 +79,6 @@ public final class LoanApplicationTransitionApiJsonValidator {
                 .extractBigDecimalWithLocaleNamed(LoanApiConstants.approvedLoanAmountParameterName, element);
         baseDataValidator.reset().parameter(LoanApiConstants.approvedLoanAmountParameterName).value(principal).ignoreIfNull()
                 .positiveAmount();
-
-        final BigDecimal netDisbursalAmount = this.fromApiJsonHelper
-                .extractBigDecimalWithLocaleNamed(LoanApiConstants.disbursementNetDisbursalAmountParameterName, element);
-        baseDataValidator.reset().parameter(LoanApiConstants.disbursementNetDisbursalAmountParameterName).value(netDisbursalAmount)
-                .ignoreIfNull().positiveAmount();
 
         final LocalDate approvedOnDate = this.fromApiJsonHelper.extractLocalDateNamed(LoanApiConstants.approvedOnDateParameterName,
                 element);

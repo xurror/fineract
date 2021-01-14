@@ -21,7 +21,6 @@ package org.apache.fineract.integrationtests;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import java.util.ArrayList;
@@ -105,8 +104,7 @@ public class LoanApplicationUndoLastTrancheTest {
         LoanStatusChecker.verifyLoanIsWaitingForDisbursal(loanStatusHashMap);
 
         // DISBURSE A LOAN
-        String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
-        this.loanTransactionHelper.disburseLoan(disbursalDate, loanID, JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan(disbursalDate, loanID);
         loanStatusHashMap = LoanStatusChecker.getStatusOfLoan(this.requestSpec, this.responseSpec, loanID);
 
         // VALIDATE THE LOAN IS ACTIVE STATUS
@@ -119,7 +117,7 @@ public class LoanApplicationUndoLastTrancheTest {
         LOG.info("-------------Make repayment 3-----------");
         this.loanTransactionHelper.makeRepayment("01 June 2014", Float.valueOf("204"), loanID);
         // DISBURSE A SECOND TRANCHE
-        this.loanTransactionHelper.disburseLoan("23 June 2014", loanID, JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan("23 June 2014", loanID);
         // UNDO LAST TRANCHE
         Float disbursedAmount = this.loanTransactionHelper.undoLastDisbursal(loanID);
         validateDisbursedAmount(disbursedAmount);

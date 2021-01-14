@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import java.util.HashMap;
@@ -146,9 +145,7 @@ public class LoanRescheduleRequestTest {
     private void disburseLoan() {
 
         if (this.loanId != null) {
-            String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, this.loanId);
-            this.loanTransactionHelper.disburseLoan(this.dateString, this.loanId,
-                    JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+            this.loanTransactionHelper.disburseLoan(this.dateString, this.loanId);
             LOG.info("Successfully disbursed loan (ID: {} )", this.loanId);
         }
     }

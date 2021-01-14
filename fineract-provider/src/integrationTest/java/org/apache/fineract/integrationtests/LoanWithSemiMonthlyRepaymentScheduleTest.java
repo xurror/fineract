@@ -107,8 +107,7 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // DISBURSE A FIRST TRANCHE
         String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
-        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID,
-                JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID);
         loanStatusHashMap = LoanStatusChecker.getStatusOfLoan(this.requestSpec, this.responseSpec, loanID);
 
         ArrayList<HashMap> loanRepaymnetSchedule = this.loanTransactionHelper.getLoanRepaymentSchedule(requestSpec, generalResponseSpec,
@@ -123,9 +122,6 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // VALIDATE REPAYMENT SCHEDULE
         verifyLoanRepaymentSchedule(lastInstallment, expectedvalues);
-
-        // VALIDATE THE NET DISBURSAL AMOUNT
-        assertEquals(Float.valueOf("10000.0"), JsonPath.from(loanDetails).get("netDisbursalAmount"));
     }
 
     @SuppressWarnings("unchecked")
@@ -159,8 +155,7 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // DISBURSE LOAN
         String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
-        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID,
-                JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID);
         loanStatusHashMap = LoanStatusChecker.getStatusOfLoan(this.requestSpec, this.responseSpec, loanID);
 
         ArrayList<HashMap> loanRepaymnetSchedule = this.loanTransactionHelper.getLoanRepaymentSchedule(requestSpec, generalResponseSpec,
@@ -221,9 +216,6 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // VALIDATE REPAYMENT SCHEDULE
         verifyLoanRepaymentSchedule(lastInstallment, expectedvalues);
-
-        // VALIDATE THE NET DISBURSAL AMOUNT
-        assertEquals(Float.valueOf("10000.0"), JsonPath.from(loanDetails).get("netDisbursalAmount"));
     }
 
     @SuppressWarnings("unchecked")
@@ -262,8 +254,7 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // DISBURSE A FIRST TRANCHE
         String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
-        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID,
-                JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan(LOAN_DISBURSEMENT_DATE, loanID);
         loanStatusHashMap = LoanStatusChecker.getStatusOfLoan(this.requestSpec, this.responseSpec, loanID);
 
         ArrayList<HashMap> loanRepaymnetSchedule = this.loanTransactionHelper.getLoanRepaymentSchedule(requestSpec, generalResponseSpec,
@@ -278,9 +269,6 @@ public class LoanWithSemiMonthlyRepaymentScheduleTest {
 
         // VALIDATE REPAYMENT SCHEDULE
         verifyLoanRepaymentSchedule(lastInstallment, expectedvalues);
-
-        // VALIDATE THE NET DISBURSAL AMOUNT
-        assertEquals(Float.valueOf("10000.0"), JsonPath.from(loanDetails).get("netDisbursalAmount"));
     }
 
     private void verifyLoanRepaymentSchedule(final HashMap lastInstallment, final Map<String, Object> expectedvalues) {

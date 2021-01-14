@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import java.util.HashMap;
@@ -133,8 +132,7 @@ public class GroupTest {
 
         this.loanTransactionHelper.approveLoan("20 September 2014", loanId);
         String loanDetails = this.loanTransactionHelper.getLoanDetails(this.requestSpec, this.responseSpec, loanId);
-        this.loanTransactionHelper.disburseLoan("20 September 2014", loanId,
-                JsonPath.from(loanDetails).get("netDisbursalAmount").toString());
+        this.loanTransactionHelper.disburseLoan("20 September 2014", loanId);
 
         final HashMap assignStaffAndInheritStaffForClientAccounts = (HashMap) GroupHelper.assignStaffInheritStaffForClientAccounts(
                 this.requestSpec, this.responseSpec, groupID.toString(), createStaffId1.toString());
