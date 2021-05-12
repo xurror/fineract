@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
+import io.restassured.path.json.JsonPath;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import java.io.ByteArrayInputStream;
@@ -199,8 +200,20 @@ public class LoanTransactionHelper {
         return performLoanTransaction(createLoanOperationURL(UNDO_APPROVAL_LOAN_COMMAND, loanID), undoBodyJson);
     }
 
+    public String getNetDiisbursalAmount(final Integer loanID) {
+        final String loanDetails = this.getLoanDetails(this.requestSpec, this.responseSpec, loanID);
+        final String netDisbursalAmount = JsonPath.from(loanDetails).get("netDisbursalAmount").toString();
+        return netDisbursalAmount;
+    }
+
     public HashMap disburseLoan(final String date, final Integer loanID) {
-        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID), getDisburseLoanAsJSON(date, null));
+        final String netDisbursalAmount = getNetDiisbursalAmount(loanID);
+        return disburseLoan(date, loanID, netDisbursalAmount);
+    }
+
+    public HashMap disburseLoan(final String date, final Integer loanID, final String disburseAmt, final String netDisbursalAmount) {
+        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID),
+                getDisburseLoanAsJSON(date, null, netDisbursalAmount));
     }
 
     public HashMap disburseLoanWithRepaymentReschedule(final String date, final Integer loanID, String adjustRepaymentDate) {
@@ -209,16 +222,30 @@ public class LoanTransactionHelper {
     }
 
     public HashMap disburseLoan(final String date, final Integer loanID, final String disburseAmt) {
-        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID), getDisburseLoanAsJSON(date, disburseAmt));
+        final String netDisbursalAmount = getNetDiisbursalAmount(loanID);
+        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID),
+                getDisburseLoanAsJSON(date, disburseAmt, netDisbursalAmount));
     }
 
     public Object disburseLoan(final String date, final Integer loanID, ResponseSpecification responseValidationError) {
-        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID), getDisburseLoanAsJSON(date, null),
-                responseValidationError);
+        final String netDisbursalAmount = getNetDiisbursalAmount(loanID);
+        return disburseLoan(date, loanID, responseValidationError, netDisbursalAmount);
+    }
+
+    public Object disburseLoan(final String date, final Integer loanID, ResponseSpecification responseValidationError,
+            final String netDisbursalAmount) {
+        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_COMMAND, loanID),
+                getDisburseLoanAsJSON(date, null, netDisbursalAmount), responseValidationError);
     }
 
     public HashMap disburseLoanToSavings(final String date, final Integer loanID) {
-        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_TO_SAVINGS_COMMAND, loanID), getDisburseLoanAsJSON(date, null));
+        final String netDisbursalAmount = getNetDiisbursalAmount(loanID);
+        return disburseLoanToSavings(date, null, netDisbursalAmount);
+    }
+
+    public HashMap disburseLoanToSavings(final String date, final Integer loanID, final String netDisbursalAmount) {
+        return performLoanTransaction(createLoanOperationURL(DISBURSE_LOAN_TO_SAVINGS_COMMAND, loanID),
+                getDisburseLoanAsJSON(date, null, netDisbursalAmount));
     }
 
     public HashMap undoDisbursal(final Integer loanID) {
@@ -346,11 +373,13 @@ public class LoanTransactionHelper {
         return (Integer) response.get("resourceId");
     }
 
-    private String getDisburseLoanAsJSON(final String actualDisbursementDate, final String transactionAmount) {
+    private String getDisburseLoanAsJSON(final String actualDisbursementDate, final String transactionAmount,
+            final String netDisbursalAmount) {
         final HashMap<String, String> map = new HashMap<>();
         map.put("locale", "en");
         map.put("dateFormat", "dd MMMM yyyy");
         map.put("actualDisbursementDate", actualDisbursementDate);
+        map.put("netDisbursalAmount", netDisbursalAmount);
         map.put("note", "DISBURSE NOTE");
         if (transactionAmount != null) {
             map.put("transactionAmount", transactionAmount);
