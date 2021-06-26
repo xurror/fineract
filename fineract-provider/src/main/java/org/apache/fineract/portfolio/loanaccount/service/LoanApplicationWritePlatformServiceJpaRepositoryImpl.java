@@ -280,8 +280,9 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                     .orElseThrow(() -> new LoanProductNotFoundException(productId));
 
             final Long clientId = this.fromJsonHelper.extractLongNamed("clientId", command.parsedJson());
+            Client client = null;
             if (clientId != null) {
-                Client client = this.clientRepository.findOneWithNotFoundDetection(clientId);
+                client = this.clientRepository.findOneWithNotFoundDetection(clientId);
                 officeSpecificLoanProductValidation(productId, client.getOffice().getId());
             }
             final Long groupId = this.fromJsonHelper.extractLongNamed("groupId", command.parsedJson());
@@ -382,6 +383,10 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                     newLoanApplication.setTopupLoanDetails(topupDetails);
                 }
             }
+
+            // if (client != null) {
+            // newLoanApplication.assessCreditRisk(client);
+            // }
 
             this.loanRepositoryWrapper.save(newLoanApplication);
 

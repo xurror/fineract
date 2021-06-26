@@ -732,6 +732,14 @@ public class CommandWrapperBuilder {
         }
     }
 
+    public CommandWrapperBuilder assessCreditRisk(final Long loanId) {
+        this.actionName = "ASSESS";
+        this.entityName = "CREDIT_RISK";
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/scorecard";
+        return this;
+    }
+
     public CommandWrapperBuilder createLoanCharge(final Long loanId) {
         this.actionName = "CREATE";
         this.entityName = "LOANCHARGE";

@@ -402,6 +402,10 @@ public class Loan extends AbstractPersistableCustom {
     @JoinTable(name = "m_loan_rate", joinColumns = @JoinColumn(name = "loan_id"), inverseJoinColumns = @JoinColumn(name = "rate_id"))
     private List<Rate> rates;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "loan_scorecard_id", referencedColumnName = "id")
+    private LoanScorecard loanScorecard;
+
     public static Loan newIndividualLoanApplication(final String accountNo, final Client client, final Integer loanType,
             final LoanProduct loanProduct, final Fund fund, final Staff officer, final CodeValue loanPurpose,
             final LoanTransactionProcessingStrategy transactionProcessingStrategy,
@@ -518,6 +522,14 @@ public class Loan extends AbstractPersistableCustom {
         // rates added here
         this.rates = rates;
 
+    }
+
+    public CodeValue getLoanPurpose() {
+        return this.loanPurpose;
+    }
+
+    public void setScorecard(LoanScorecard loanScorecard) {
+        this.loanScorecard = loanScorecard;
     }
 
     private LoanSummary updateSummaryWithTotalFeeChargesDueAtDisbursement(final BigDecimal feeChargesDueAtDisbursement) {
@@ -5118,6 +5130,14 @@ public class Loan extends AbstractPersistableCustom {
             expectedMaturityDate = LocalDate.ofInstant(this.expectedMaturityDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
         }
         return expectedMaturityDate;
+    }
+
+    public LocalDate getExpectedDisbursementDate() {
+        LocalDate expectedDisbursementDate = null;
+        if (this.expectedDisbursementDate != null) {
+            expectedDisbursementDate = LocalDate.ofInstant(this.expectedDisbursementDate.toInstant(), DateUtils.getDateTimeZoneOfTenant());
+        }
+        return expectedDisbursementDate;
     }
 
     public LocalDate getMaturityDate() {

@@ -59,6 +59,8 @@ public interface LoanWritePlatformService {
 
     CommandProcessingResult addLoanCharge(Long loanId, JsonCommand command);
 
+    CommandProcessingResult assessCreditRisk(Long loanId, JsonCommand command);
+
     CommandProcessingResult updateLoanCharge(Long loanId, Long loanChargeId, JsonCommand command);
 
     CommandProcessingResult deleteLoanCharge(Long loanId, Long loanChargeId, JsonCommand command);

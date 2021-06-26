@@ -263,6 +263,45 @@ public final class LoanEventApiJsonValidator {
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
 
+    public void validateAssessCreditRisk(final String json) {
+        if (StringUtils.isBlank(json)) {
+            throw new InvalidJsonException();
+        }
+
+        final Set<String> creditRiskParameters = new HashSet<>(
+                Arrays.asList("age", "sex", "job", "housing", "creditAmount", "duration", "purpose", "locale", "dateFormat"));
+
+        final Type typeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
+        this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, creditRiskParameters);
+
+        final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
+        final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("scorecard");
+
+        final JsonElement element = this.fromApiJsonHelper.parse(json);
+        final Integer age = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("age", element);
+        baseDataValidator.reset().parameter("age").value(age).notNull().integerGreaterThanZero();
+
+        final String sex = this.fromApiJsonHelper.extractStringNamed("sex", element);
+        baseDataValidator.reset().parameter("sex").value(sex).notBlank();
+
+        final String job = this.fromApiJsonHelper.extractStringNamed("job", element);
+        baseDataValidator.reset().parameter("job").value(job).notBlank();
+
+        final String housing = this.fromApiJsonHelper.extractStringNamed("housing", element);
+        baseDataValidator.reset().parameter("housing").value(housing).notBlank();
+
+        final BigDecimal creditAmount = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("creditAmount", element);
+        baseDataValidator.reset().parameter("creditAmount").value(creditAmount).notNull().positiveAmount();
+
+        final Integer duration = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("duration", element);
+        baseDataValidator.reset().parameter("duration").value(duration).notNull().integerGreaterThanZero();
+
+        final String purpose = this.fromApiJsonHelper.extractStringNamed("purpose", element);
+        baseDataValidator.reset().parameter("purpose").value(purpose).notBlank();
+
+        throwExceptionIfValidationWarningsExist(dataValidationErrors);
+    }
+
     public void validateUpdateOfLoanCharge(final String json) {
         if (StringUtils.isBlank(json)) {
             throw new InvalidJsonException();

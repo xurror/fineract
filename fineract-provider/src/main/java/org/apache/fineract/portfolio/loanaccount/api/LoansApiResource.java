@@ -112,6 +112,7 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionData;
 import org.apache.fineract.portfolio.loanaccount.data.PaidInAdvanceData;
 import org.apache.fineract.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
+import org.apache.fineract.portfolio.loanaccount.data.ScorecardData;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTermVariationType;
 import org.apache.fineract.portfolio.loanaccount.exception.LoanTemplateTypeRequiredException;
 import org.apache.fineract.portfolio.loanaccount.exception.NotSupportedLoanTemplateTypeException;
@@ -235,6 +236,7 @@ public class LoansApiResource {
     private final CodeValueReadPlatformService codeValueReadPlatformService;
     private final GroupReadPlatformService groupReadPlatformService;
     private final DefaultToApiJsonSerializer<LoanAccountData> toApiJsonSerializer;
+    private final DefaultToApiJsonSerializer<ScorecardData> scorecardToApiJsonSerializer;
     private final DefaultToApiJsonSerializer<LoanApprovalData> loanApprovalDataToApiJsonSerializer;
     private final DefaultToApiJsonSerializer<LoanScheduleData> loanScheduleToApiJsonSerializer;
     private final ApiRequestParameterHelper apiRequestParameterHelper;
@@ -264,6 +266,7 @@ public class LoansApiResource {
             final GuarantorReadPlatformService guarantorReadPlatformService,
             final CodeValueReadPlatformService codeValueReadPlatformService, final GroupReadPlatformService groupReadPlatformService,
             final DefaultToApiJsonSerializer<LoanAccountData> toApiJsonSerializer,
+            final DefaultToApiJsonSerializer<ScorecardData> scorecardToApiJsonSerializer,
             final DefaultToApiJsonSerializer<LoanApprovalData> loanApprovalDataToApiJsonSerializer,
             final DefaultToApiJsonSerializer<LoanScheduleData> loanScheduleToApiJsonSerializer,
             final ApiRequestParameterHelper apiRequestParameterHelper, final FromJsonHelper fromJsonHelper,
@@ -292,6 +295,7 @@ public class LoansApiResource {
         this.codeValueReadPlatformService = codeValueReadPlatformService;
         this.groupReadPlatformService = groupReadPlatformService;
         this.toApiJsonSerializer = toApiJsonSerializer;
+        this.scorecardToApiJsonSerializer = scorecardToApiJsonSerializer;
         this.loanApprovalDataToApiJsonSerializer = loanApprovalDataToApiJsonSerializer;
         this.loanScheduleToApiJsonSerializer = loanScheduleToApiJsonSerializer;
         this.apiRequestParameterHelper = apiRequestParameterHelper;
@@ -340,6 +344,22 @@ public class LoansApiResource {
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.loanApprovalDataToApiJsonSerializer.serialize(settings, loanApprovalTemplate, this.loanApprovalDataParameters);
 
+    }
+
+    @GET
+    @Path("{loanId}/scorecard/template")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String retrieveScorecardTemplate(@PathParam("loanId") @Parameter(description = "loanId") final Long loanId,
+            @Context final UriInfo uriInfo) {
+
+        this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
+
+        ScorecardData scorecardTemplate = this.loanReadPlatformService.retrieveScorecardTemplate(loanId);
+
+        final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
+
+        return this.scorecardToApiJsonSerializer.serialize(settings, scorecardTemplate);
     }
 
     @GET
@@ -972,6 +992,40 @@ public class LoansApiResource {
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         } else if (is(commandParam, "undoapproval")) {
             final CommandWrapper commandRequest = builder.undoGLIMLoanApproval(glimId).build();
+            result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        }
+
+        if (result == null) {
+            throw new UnrecognizedQueryParamException("command", commandParam);
+        }
+
+        return this.toApiJsonSerializer.serialize(result);
+    }
+
+    @POST
+    @Path("{loanId}/scorecard")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Operation(summary = "Approve GLIM Application | Undo GLIM Application Approval | Reject GLIM Application | Disburse Loan Disburse Loan To Savings Account | Undo Loan Disbursal", description = "Approve GLIM Application:\n"
+            + "Mandatory Fields: approvedOnDate\n" + "Optional Fields: approvedLoanAmount and expectedDisbursementDate\n"
+            + "Approves the GLIM application\n\n" + "Undo GLIM Application Approval:\n" + "Undoes the GLIM Application Approval\n\n"
+            + "Reject GLIM Application:\n" + "Mandatory Fields: rejectedOnDate\n" + "Allows you to reject the GLIM application\n\n"
+            + "Disburse Loan:\n" + "Mandatory Fields: actualDisbursementDate\n" + "Optional Fields: transactionAmount and fixedEmiAmount\n"
+            + "Disburses the Loan\n\n" + "Disburse Loan To Savings Account:\n" + "Mandatory Fields: actualDisbursementDate\n"
+            + "Optional Fields: transactionAmount and fixedEmiAmount\n" + "Disburses the loan to Saving Account\n\n"
+            + "Undo Loan Disbursal:\n" + "Undoes the Loan Disbursal\n")
+    @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoansApiResourceSwagger.PostLoansLoanIdRequest.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = LoansApiResourceSwagger.PostLoansLoanIdResponse.class))) })
+    public String assessCreditRisk(@PathParam("loanId") final Long loanId, @QueryParam("command") final String commandParam,
+            final String apiRequestBodyAsJson) {
+
+        final CommandWrapperBuilder builder = new CommandWrapperBuilder().withJson(apiRequestBodyAsJson);
+
+        CommandProcessingResult result = null;
+
+        if (is(commandParam, "assessrisk")) {
+            final CommandWrapper commandRequest = builder.assessCreditRisk(loanId).build();
             result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
         }
 

@@ -37,6 +37,11 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.accounting.journalentry.service.JournalEntryWritePlatformService;
+import org.apache.fineract.cn.sekhmet.ApiClient;
+import org.apache.fineract.cn.sekhmet.ApiException;
+import org.apache.fineract.cn.sekhmet.Configuration;
+import org.apache.fineract.cn.sekhmet.models.PredictionResponse;
+import org.apache.fineract.cn.sekhmet.services.AlgorithmsApi;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepositoryWrapper;
 import org.apache.fineract.infrastructure.configuration.domain.ConfigurationDomainService;
@@ -147,6 +152,9 @@ import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleIns
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleTransactionProcessorFactory;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepository;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepositoryWrapper;
+import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecard;
+import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFields;
+import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardRepository;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanStatus;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanSubStatus;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanSummaryWrapper;
@@ -238,6 +246,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
     private final CashierTransactionDataValidator cashierTransactionDataValidator;
     private final GLIMAccountInfoRepository glimRepository;
     private final LoanRepository loanRepository;
+    private final LoanScorecardRepository loanScorecardRepository;
 
     @Autowired
     public LoanWritePlatformServiceJpaRepositoryImpl(final PlatformSecurityContext context,
@@ -267,7 +276,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             final LoanRepaymentScheduleTransactionProcessorFactory transactionProcessingStrategy,
             final CodeValueRepositoryWrapper codeValueRepository, final LoanRepositoryWrapper loanRepositoryWrapper,
             final CashierTransactionDataValidator cashierTransactionDataValidator, final GLIMAccountInfoRepository glimRepository,
-            final LoanRepository loanRepository) {
+            final LoanRepository loanRepository, final LoanScorecardRepository loanScorecardRepository) {
         this.context = context;
         this.loanEventApiJsonValidator = loanEventApiJsonValidator;
         this.loanAssembler = loanAssembler;
@@ -308,6 +317,7 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
         this.cashierTransactionDataValidator = cashierTransactionDataValidator;
         this.loanRepository = loanRepository;
         this.glimRepository = glimRepository;
+        this.loanScorecardRepository = loanScorecardRepository;
     }
 
     private LoanLifecycleStateMachine defaultLoanLifecycleStateMachine() {
@@ -1367,6 +1377,72 @@ public class LoanWritePlatformServiceJpaRepositoryImpl implements LoanWritePlatf
             throw new ChargeCannotBeUpdatedException("error.msg.charge.cannot.be.updated.no.pending.disbursements.in.loan",
                     "This charge cannot be added, No disbursement is pending");
         }
+    }
+
+    @Transactional
+    @Override
+    public CommandProcessingResult assessCreditRisk(final Long loanId, final JsonCommand command) {
+        this.loanEventApiJsonValidator.validateAssessCreditRisk(command.json());
+
+        final Loan loan = this.loanAssembler.assembleFrom(loanId);
+        checkClientOrGroupActive(loan);
+
+        ApiClient defaultClient = Configuration.getDefaultApiClient();
+        defaultClient.setBasePath("http://127.0.0.1:8000");
+
+        AlgorithmsApi apiInstance = new AlgorithmsApi(defaultClient);
+
+        final String classifier = "RandomForestClassifier"; // String | The algorithm/classifier to use
+        final String version = "0.0.1"; // String | Algorithm version
+        final String dataset = "german"; // String | The name of the dataset
+        final String status = "production"; // String | The status of the algorithm
+
+        final Map<String, Object> predictionData = new HashMap<>();
+
+        final LoanScorecardFields loanScorecardFields = new LoanScorecardFields(command.integerValueOfParameterNamed("age"),
+                command.stringValueOfParameterNamed("sex").toLowerCase(), command.stringValueOfParameterNamed("job").toLowerCase(),
+                command.stringValueOfParameterNamed("housing").toLowerCase(), command.bigDecimalValueOfParameterNamed("creditAmount"),
+                command.integerValueOfParameterNamed("duration"), command.stringValueOfParameterNamed("purpose").toLowerCase());
+
+        predictionData.put("age", loanScorecardFields.getAge());
+        predictionData.put("sex", loanScorecardFields.getSex());
+        predictionData.put("job", loanScorecardFields.getJob());
+        predictionData.put("housing", loanScorecardFields.getHousing());
+        predictionData.put("credit_amount", loanScorecardFields.getCreditAmount());
+        predictionData.put("duration", loanScorecardFields.getDuration());
+        predictionData.put("purpose", loanScorecardFields.getPurpose());
+
+        final LoanScorecard loanScorecard = new LoanScorecard().scorecardFields(loanScorecardFields);
+
+        try {
+            final PredictionResponse predictionResponse = apiInstance.algorithmsPredict(classifier, version, dataset, status,
+                    predictionData);
+            loanScorecard.setPredictionResponse(predictionResponse);
+            this.loanScorecardRepository.save(loanScorecard);
+            loan.setScorecard(loanScorecard);
+            saveLoanWithDataIntegrityViolationChecks(loan);
+        } catch (ApiException e) {
+            System.err.println("Exception when calling AlgorithmsApi#algorithmsPredict");
+            System.err.println("Status code: " + e.getCode());
+            System.err.println("Reason: " + e.getResponseBody());
+            System.err.println("Response headers: " + e.getResponseHeaders());
+            e.printStackTrace();
+        }
+
+        this.businessEventNotifierService.notifyBusinessEventWasExecuted(BusinessEvents.CREDIT_RISK_ASSESSED,
+                constructEntityMap(BusinessEntity.LOAN, loan));
+
+        // disable all active standing instructions linked to the loan
+        this.loanAccountDomainService.disableStandingInstructionsLinkedToClosedLoan(loan);
+
+        return new CommandProcessingResultBuilder() //
+                .withCommandId(command.commandId()) //
+                .withEntityId(loanId) //
+                .withOfficeId(loan.getOfficeId()) //
+                .withClientId(loan.getClientId()) //
+                .withGroupId(loan.getGroupId()) //
+                .withLoanId(loanId) //
+                .build();
     }
 
     @Transactional

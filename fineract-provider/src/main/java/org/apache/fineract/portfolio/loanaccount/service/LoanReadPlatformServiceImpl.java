@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.domain.ChargeTimeType;
 import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.client.data.ClientData;
+import org.apache.fineract.portfolio.client.domain.Client;
 import org.apache.fineract.portfolio.client.domain.ClientEnumerations;
 import org.apache.fineract.portfolio.client.service.ClientReadPlatformService;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
@@ -94,6 +96,7 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionEnumData;
 import org.apache.fineract.portfolio.loanaccount.data.PaidInAdvanceData;
 import org.apache.fineract.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
 import org.apache.fineract.portfolio.loanaccount.data.ScheduleGeneratorDTO;
+import org.apache.fineract.portfolio.loanaccount.data.ScorecardData;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleInstallment;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleTransactionProcessorFactory;
@@ -1412,6 +1415,40 @@ public class LoanReadPlatformServiceImpl implements LoanReadPlatformService {
                 repaymentFrequencyNthDayTypeOptions, repaymentFrequencyDaysOfWeekTypeOptions, repaymentStrategyOptions,
                 interestRateFrequencyTypeOptions, amortizationTypeOptions, interestTypeOptions, interestCalculationPeriodTypeOptions,
                 fundOptions, chargeOptions, loanPurposeOptions, loanCollateralOptions, loanCycleCounter, activeLoanOptions);
+    }
+
+    @Override
+    public ScorecardData retrieveScorecardTemplate(Long loanId) {
+        final Loan loan = this.loanRepositoryWrapper.findOneWithNotFoundDetection(loanId, true);
+        final Client client = loan.client();
+
+        final LocalDate dateOfBirth = LocalDate.ofInstant(client.dateOfBirth().toInstant(), DateUtils.getDateTimeZoneOfTenant());
+
+        final int age = Period.between(dateOfBirth, LocalDate.now(DateUtils.getDateTimeZoneOfTenant())).getYears();
+
+        String gender = null;
+        if (client.gender() != null) {
+            gender = client.gender().label();
+        }
+
+        final BigDecimal creditAmount = loan.getProposedPrincipal();
+
+        final LocalDate expectedDisbursementDate = loan.getExpectedDisbursementDate().withDayOfMonth(1);
+        final LocalDate expectedMaturityDate = loan.getExpectedMaturityDate().withDayOfMonth(1);
+
+        final Period durationPeriod = Period.between(expectedDisbursementDate, expectedMaturityDate);
+
+        final int duration = (durationPeriod.getYears() * 12) + durationPeriod.getMonths();
+
+        String purpose = null;
+        if (loan.getLoanPurpose() != null) {
+            purpose = loan.getLoanPurpose().label();
+        }
+
+        final Collection<CodeValueData> genderOptions = new ArrayList<>(
+                this.codeValueReadPlatformService.retrieveCodeValuesByCode("Gender"));
+
+        return ScorecardData.instance(age, gender, creditAmount, duration, purpose, genderOptions);
     }
 
     @Override

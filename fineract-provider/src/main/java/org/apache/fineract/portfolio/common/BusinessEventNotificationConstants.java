@@ -73,7 +73,7 @@ public class BusinessEventNotificationConstants {
         SHARE_PRODUCT_DIVIDENDS_CREATE("share_product_dividends_create"), //
         FIXED_DEPOSIT_ACCOUNT_CREATE("fixed_deposit_account_create"), //
         SHARE_ACCOUNT_APPROVE("share_account_approve"), //
-        RECURRING_DEPOSIT_ACCOUNT_CREATE("recurring_deposit_account_create");
+        RECURRING_DEPOSIT_ACCOUNT_CREATE("recurring_deposit_account_create"), CREDIT_RISK_ASSESSED("credit_risk_assessed");
 
         private final String value;
 

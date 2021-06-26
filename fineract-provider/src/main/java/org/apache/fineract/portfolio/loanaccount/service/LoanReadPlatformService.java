@@ -36,6 +36,7 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionData;
 import org.apache.fineract.portfolio.loanaccount.data.PaidInAdvanceData;
 import org.apache.fineract.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
+import org.apache.fineract.portfolio.loanaccount.data.ScorecardData;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.LoanScheduleData;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.LoanSchedulePeriodData;
 import org.apache.fineract.portfolio.loanaccount.loanschedule.data.OverdueLoanScheduleData;
@@ -64,6 +65,8 @@ public interface LoanReadPlatformService {
     LoanTransactionData retrieveDisbursalTemplate(Long loanId, boolean paymentDetailsRequired);
 
     LoanApprovalData retrieveApprovalTemplate(Long loanId);
+
+    ScorecardData retrieveScorecardTemplate(Long loanId);
 
     LoanAccountData retrieveTemplateWithCompleteGroupAndProductDetails(Long groupId, Long productId);
 
