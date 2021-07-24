@@ -18,17 +18,20 @@
  */
 package org.apache.fineract.portfolio.loanproduct.domain;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface LoanProductRepository extends JpaRepository<LoanProduct, Long>, JpaSpecificationExecutor<LoanProduct> {
+public interface LoanProductScorecardFeatureRepository
+        extends JpaRepository<LoanProductScorecardFeature, Long>, JpaSpecificationExecutor<LoanProductScorecardFeature> {
 
-    @Query("select loanProduct from LoanProduct loanProduct, IN(loanProduct.charges) charge where charge.id = :chargeId")
-    List<LoanProduct> retrieveLoanProductsByChargeId(@Param("chargeId") Long chargeId);
+    @Query("select feature from LoanProductScorecardFeature feature WHERE feature.scorecardFeature.active = true AND feature.scorecardFeature.deleted = false AND feature.loanProduct.id = :productId AND feature.scorecardFeature.id = :featureId")
+    Optional<LoanProductScorecardFeature> retrieveFeatureByProductIdAndScorecardFeatureId(@Param("productId") Long productId,
+            @Param("featureId") Long featureId);
 
-    @Query("select loanProduct from LoanProduct loanProduct, IN(loanProduct.scorecardFeatures) feature where feature.id = :featureId")
-    List<LoanProduct> retrieveLoanProductsByScorecardFeatureId(@Param("featureId") Long featureId);
+    @Query("SELECT feature FROM LoanProductScorecardFeature feature WHERE feature.scorecardFeature.active = true AND feature.scorecardFeature.deleted = false AND feature.loanProduct.id = :loanProductId")
+    Collection<LoanProductScorecardFeature> findByLoanProductId(@Param("loanProductId") Long loanProductId);
 }

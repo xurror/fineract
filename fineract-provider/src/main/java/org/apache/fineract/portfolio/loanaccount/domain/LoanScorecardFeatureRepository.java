@@ -16,19 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.loanproduct.domain;
+package org.apache.fineract.portfolio.loanaccount.domain;
 
-import java.util.List;
+import java.util.Collection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface LoanProductRepository extends JpaRepository<LoanProduct, Long>, JpaSpecificationExecutor<LoanProduct> {
+public interface LoanScorecardFeatureRepository
+        extends JpaRepository<LoanScorecardFeature, Long>, JpaSpecificationExecutor<LoanScorecardFeature> {
 
-    @Query("select loanProduct from LoanProduct loanProduct, IN(loanProduct.charges) charge where charge.id = :chargeId")
-    List<LoanProduct> retrieveLoanProductsByChargeId(@Param("chargeId") Long chargeId);
-
-    @Query("select loanProduct from LoanProduct loanProduct, IN(loanProduct.scorecardFeatures) feature where feature.id = :featureId")
-    List<LoanProduct> retrieveLoanProductsByScorecardFeatureId(@Param("featureId") Long featureId);
+    @Query("SELECT feature FROM LoanScorecardFeature feature WHERE feature.loan.id = :loanId")
+    Collection<LoanScorecardFeature> findByLoanId(@Param("loanId") Long loanId);
 }

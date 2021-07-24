@@ -32,9 +32,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CreditBureauConfigurationTest {
+public class CreditBureauCreditCreditScorecardFeatureConfigurationTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CreditBureauConfigurationTest.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CreditBureauCreditCreditScorecardFeatureConfigurationTest.class);
     private ResponseSpecification responseSpec;
     private RequestSpecification requestSpec;
     private LoanTransactionHelper loanTransactionHelper;

@@ -37,7 +37,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 @WebAppConfiguration
 @ActiveProfiles("basicauth")
 @ContextConfiguration(classes = TestsWithoutDatabaseAndNoJobsConfiguration.class)
-public class SpringConfigurationTest {
+public class SpringCreditCreditScorecardFeatureConfigurationTest {
 
     /**
      * This tests if "Aal izz well" (i.e. if we can start-up with the [almost] "production" Spring XML configuration) by
