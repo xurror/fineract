@@ -254,14 +254,6 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                 }
             }
 
-            if (changes.containsKey("scorecardFeatures")) {
-                final List<LoanProductScorecardFeature> scorecardFeatures = assembleListOfProductScoringFeatures(command, product);
-                final boolean updated = product.updateScorecardFeatures(scorecardFeatures);
-                if (!updated) {
-                    changes.remove("scorecardFeatures");
-                }
-            }
-
             // accounting related changes
             final boolean accountingTypeChanged = changes.containsKey("accountingRule");
             final Map<String, Object> accountingMappingChanges = this.accountMappingWritePlatformService
@@ -273,6 +265,14 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                 final boolean updated = product.updateRates(productRates);
                 if (!updated) {
                     changes.remove(LoanProductConstants.RATES_PARAM_NAME);
+                }
+            }
+
+            if (changes.containsKey("scorecardFeatures")) {
+                final List<LoanProductScorecardFeature> scorecardFeatures = assembleListOfProductScoringFeatures(command, product);
+                final boolean updated = product.updateScorecardFeatures(scorecardFeatures);
+                if (!updated) {
+                    changes.remove("scorecardFeatures");
                 }
             }
 
@@ -350,10 +350,8 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                 for (int i = 0; i < featuresArray.size(); i++) {
 
                     final JsonObject jsonObject = featuresArray.get(i).getAsJsonObject();
-                    if (jsonObject.has("id")) {
-                        final Long id = jsonObject.get("id").getAsLong();
-
-                        final CreditScorecardFeature feature = this.scorecardFeatureRepository.findOneWithNotFoundDetection(id);
+                    if (jsonObject.has("featureId")) {
+                        final Long id = jsonObject.get("featureId").getAsLong();
 
                         final BigDecimal weightage = jsonObject.get("weightage").getAsBigDecimal();
                         final Integer greenMin = jsonObject.get("greenMin").getAsInt();
@@ -363,11 +361,14 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                         final Integer redMin = jsonObject.get("redMin").getAsInt();
                         final Integer redMax = jsonObject.get("redMax").getAsInt();
 
-                        final LoanProductScorecardFeature loanProductFeature = new LoanProductScorecardFeature(feature, weightage, greenMin,
-                                greenMax, amberMin, amberMax, redMin, redMax);
-
                         final List<ScorecardFeatureCriteria> criteria = this
                                 .assembleListOfProductScoringFeatureCriteriaScores(jsonObject.get("criteriaScores").getAsJsonArray());
+
+                        final CreditScorecardFeature feature = this.scorecardFeatureRepository.findOneWithNotFoundDetection(id);
+
+                        final LoanProductScorecardFeature loanProductFeature = new LoanProductScorecardFeature(feature, weightage, greenMin,
+                                greenMax, amberMin, amberMax, redMin, redMax);
+                        ;
 
                         loanProductFeature.setFeatureCriteria(criteria);
                         loanProductFeatures.add(loanProductFeature);
@@ -387,7 +388,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
             for (int i = 0; i < jsonArray.size(); i++) {
 
                 final JsonObject jsonObject = jsonArray.get(i).getAsJsonObject();
-                final Integer score = jsonObject.get("score").getAsInt();
+                final BigDecimal score = jsonObject.get("score").getAsBigDecimal();
                 final String scoreCriteria = jsonObject.get("criteria").getAsString();
 
                 featureCriteria.add(new ScorecardFeatureCriteria(scoreCriteria, score));

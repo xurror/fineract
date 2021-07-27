@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -99,8 +98,10 @@ import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.client.data.ClientData;
 import org.apache.fineract.portfolio.collateral.data.CollateralData;
 import org.apache.fineract.portfolio.collateral.service.CollateralReadPlatformService;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
 import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardReadPlatformService;
+import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardWritePlatformService;
 import org.apache.fineract.portfolio.floatingrates.data.InterestRatePeriodData;
 import org.apache.fineract.portfolio.fund.data.FundData;
 import org.apache.fineract.portfolio.fund.service.FundReadPlatformService;
@@ -115,7 +116,6 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionData;
 import org.apache.fineract.portfolio.loanaccount.data.PaidInAdvanceData;
 import org.apache.fineract.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeature;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTermVariationType;
 import org.apache.fineract.portfolio.loanaccount.exception.LoanTemplateTypeRequiredException;
@@ -133,7 +133,6 @@ import org.apache.fineract.portfolio.loanproduct.LoanProductConstants;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
 import org.apache.fineract.portfolio.loanproduct.data.TransactionProcessingStrategyData;
 import org.apache.fineract.portfolio.loanproduct.domain.InterestMethod;
-import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.loanproduct.service.LoanDropdownReadPlatformService;
 import org.apache.fineract.portfolio.loanproduct.service.LoanProductReadPlatformService;
@@ -264,6 +263,8 @@ public class LoansApiResource {
     private final LoanProductScorecardFeatureRepositoryWrapper loanProductFeatureRepository;
     private final LoanScorecardFeatureRepositoryWrapper loanFeatureRepository;
 
+    private final CreditScorecardWritePlatformService scorecardWritePlatformService;
+
     @Autowired
     public LoansApiResource(final PlatformSecurityContext context, final LoanReadPlatformService loanReadPlatformService,
             final LoanProductReadPlatformService loanProductReadPlatformService,
@@ -291,7 +292,8 @@ public class LoansApiResource {
             final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService,
             final CreditScorecardReadPlatformService scorecardReadPlatformService,
             final LoanProductScorecardFeatureRepositoryWrapper loanProductFeatureRepository,
-            final LoanScorecardFeatureRepositoryWrapper loanFeatureRepository) {
+            final LoanScorecardFeatureRepositoryWrapper loanFeatureRepository,
+            final CreditScorecardWritePlatformService scorecardWritePlatformService) {
         this.context = context;
         this.loanReadPlatformService = loanReadPlatformService;
         this.loanProductReadPlatformService = loanProductReadPlatformService;
@@ -326,6 +328,7 @@ public class LoansApiResource {
         this.scorecardReadPlatformService = scorecardReadPlatformService;
         this.loanFeatureRepository = loanFeatureRepository;
         this.loanProductFeatureRepository = loanProductFeatureRepository;
+        this.scorecardWritePlatformService = scorecardWritePlatformService;
     }
 
     /*
@@ -509,6 +512,10 @@ public class LoansApiResource {
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
         LoanAccountData loanBasicDetails = this.loanReadPlatformService.retrieveOne(loanId);
+
+        final CreditScorecardData scorecard = this.scorecardWritePlatformService.assessCreditRisk(loanId);
+        loanBasicDetails = LoanAccountData.populateScorecardDetails(loanBasicDetails, scorecard);
+
         if (loanBasicDetails.isInterestRecalculationEnabled()) {
             Collection<CalendarData> interestRecalculationCalendarDatas = this.calendarReadPlatformService.retrieveCalendarsByEntity(
                     loanBasicDetails.getInterestRecalculationDetailId(), CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue(),
@@ -740,12 +747,9 @@ public class LoansApiResource {
             rates = this.rateReadService.retrieveLoanRates(loanId);
         }
 
-        final Collection<CreditScorecardFeatureData> scorecardFeatures = this.loanFeatureRepository.findFeaturesByLoanId(loanId).stream()
-                .map(LoanScorecardFeature::toData).collect(Collectors.toList());
-        assert product != null;
-        final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = this.loanProductFeatureRepository
-                .findFeaturesByLoanProductId(product.getId()).stream().map(LoanProductScorecardFeature::toData)
-                .collect(Collectors.toList());
+        final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
+
+        final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
 
         final LoanAccountData loanAccount = LoanAccountData.associationsAndTemplate(loanBasicDetails, repaymentSchedule, loanRepayments,
                 charges, collateral, guarantors, meeting, productOptions, loanTermFrequencyTypeOptions, repaymentFrequencyTypeOptions,

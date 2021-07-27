@@ -114,7 +114,8 @@ public class CreditScorecardFeature extends AbstractPersistableCustom implements
         final EnumOptionData dataType = CreditScorecardEnumerations.featureDataType(this.dataType);
         final EnumOptionData category = CreditScorecardEnumerations.featureCategory(this.category);
 
-        return CreditScorecardFeatureData.instance(getId(), this.name, valueType, dataType, category, this.active);
+        return CreditScorecardFeatureData.instance(null, getId(), this.name, valueType, dataType, category, this.active, null, null, null,
+                null, null, null, null);
     }
 
     public Map<String, Object> update(final JsonCommand command) {

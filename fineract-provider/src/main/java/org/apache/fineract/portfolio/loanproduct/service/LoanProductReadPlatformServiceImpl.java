@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 import org.apache.fineract.accounting.common.AccountingEnumerations;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.JdbcSupport;
@@ -38,13 +37,13 @@ import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.common.service.CommonEnumerations;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
+import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardReadPlatformService;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationData;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductGuaranteeData;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductInterestRecalculationData;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductConfigurableAttributes;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductParamType;
-import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.loanproduct.exception.LoanProductNotFoundException;
 import org.apache.fineract.portfolio.rate.data.RateData;
@@ -64,18 +63,21 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
     private final RateReadService rateReadService;
     private final LoanProductScorecardFeatureRepositoryWrapper productFeatureRepository;
     private final FineractEntityAccessUtil fineractEntityAccessUtil;
+    private final CreditScorecardReadPlatformService scorecardReadPlatformService;
 
     @Autowired
     public LoanProductReadPlatformServiceImpl(final PlatformSecurityContext context,
             final ChargeReadPlatformService chargeReadPlatformService, final RoutingDataSource dataSource,
             final FineractEntityAccessUtil fineractEntityAccessUtil, final RateReadService rateReadService,
-            final LoanProductScorecardFeatureRepositoryWrapper productFeatureRepository) {
+            final LoanProductScorecardFeatureRepositoryWrapper productFeatureRepository,
+            final CreditScorecardReadPlatformService scorecardReadPlatformService) {
         this.context = context;
         this.chargeReadPlatformService = chargeReadPlatformService;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.fineractEntityAccessUtil = fineractEntityAccessUtil;
         this.rateReadService = rateReadService;
         this.productFeatureRepository = productFeatureRepository;
+        this.scorecardReadPlatformService = scorecardReadPlatformService;
     }
 
     @Override
@@ -86,9 +88,10 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
             final Collection<RateData> rates = this.rateReadService.retrieveProductLoanRates(loanProductId);
             final Collection<LoanProductBorrowerCycleVariationData> borrowerCycleVariationDatas = retrieveLoanProductBorrowerCycleVariations(
                     loanProductId);
-            final Collection<CreditScorecardFeatureData> scorecardFeatures = this.productFeatureRepository
-                    .findFeaturesByLoanProductId(loanProductId).stream().map(LoanProductScorecardFeature::toData)
-                    .collect(Collectors.toList());
+
+            final Collection<CreditScorecardFeatureData> scorecardFeatures = this.scorecardReadPlatformService
+                    .retrieveLoanProductFeatures(loanProductId);
+
             final LoanProductMapper rm = new LoanProductMapper(charges, borrowerCycleVariationDatas, rates, scorecardFeatures);
             final String sql = "select " + rm.loanProductSchema() + " where lp.id = ?";
 

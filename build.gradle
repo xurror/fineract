@@ -82,6 +82,9 @@ allprojects  {
     group = 'org.apache.fineract'
 
     repositories {
+        flatDir {
+            dirs "$rootDir/libs"
+        }
         jcenter()
     }
 
@@ -172,6 +175,9 @@ allprojects  {
             dependency "javax.annotation:javax.annotation-api:1.3.2"
             dependency "com.google.code.findbugs:jsr305:3.0.2"
             dependency "commons-codec:commons-codec:1.15"
+
+            dependency "org.apache.fineract.cn:sekhmet-java-client:1.0.0"
+            dependency "io.gsonfire:gson-fire:1.8.0"
 
             dependency ('org.flywaydb:flyway-core:7.0.0') {
                 // https://issues.apache.org/jira/browse/FINERACT-1172

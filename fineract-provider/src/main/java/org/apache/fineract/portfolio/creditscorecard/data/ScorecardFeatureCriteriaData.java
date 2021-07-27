@@ -19,20 +19,21 @@
 package org.apache.fineract.portfolio.creditscorecard.data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 public final class ScorecardFeatureCriteriaData implements Serializable {
 
     private final Long id;
     private final String criteria;
-    private final Integer score;
+    private final BigDecimal score;
 
-    private ScorecardFeatureCriteriaData(Long id, String criteria, Integer score) {
+    private ScorecardFeatureCriteriaData(Long id, String criteria, BigDecimal score) {
         this.id = id;
         this.criteria = criteria;
         this.score = score;
     }
 
-    public static ScorecardFeatureCriteriaData instance(final Long id, final String criteria, final Integer score) {
+    public static ScorecardFeatureCriteriaData instance(final Long id, final String criteria, final BigDecimal score) {
         return new ScorecardFeatureCriteriaData(id, criteria, score);
     }
 

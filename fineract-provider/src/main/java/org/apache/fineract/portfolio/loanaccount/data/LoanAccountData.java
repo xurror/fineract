@@ -39,7 +39,9 @@ import org.apache.fineract.portfolio.calendar.data.CalendarData;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.collateral.data.CollateralData;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
+import org.apache.fineract.portfolio.creditscorecard.data.MLScorecardData;
 import org.apache.fineract.portfolio.floatingrates.data.InterestRatePeriodData;
 import org.apache.fineract.portfolio.fund.data.FundData;
 import org.apache.fineract.portfolio.group.data.GroupGeneralData;
@@ -190,6 +192,7 @@ public final class LoanAccountData {
     private final Long closureLoanId;
     private final String closureLoanAccountNo;
     private final BigDecimal topupAmount;
+    private final CreditScorecardData scorecard;
 
     private LoanProductData product;
 
@@ -238,6 +241,8 @@ public final class LoanAccountData {
     private Long groupId;
     private LocalDate expectedDisbursementDate;
 
+    private final MLScorecardData mlScorecard;
+
     private final Collection<CreditScorecardFeatureData> scorecardFeatures;
     private final Collection<CreditScorecardFeatureData> scorecardFeatureOptions;
 
@@ -248,15 +253,16 @@ public final class LoanAccountData {
             EnumOptionData amortizationEnumOption, EnumOptionData interestMethodEnum, EnumOptionData interestCalculationPeriodTypeEnum,
             BigDecimal inArrearsTolerance, Long transactionProcessingStrategyId, Integer graceOnPrincipalPayment,
             Integer graceOnInterestPayment, Integer graceOnInterestCharged, LocalDate interestChargedFromDate,
-            LocalDate repaymentsStartingFromDate, Integer rowIndex, String externalId, Long groupId, Collection<LoanChargeData> charges,
-            Collection<CreditScorecardFeatureData> scorecardFeatures, String linkAccountId, String locale, String dateFormat) {
+            LocalDate repaymentsStartingFromDate, Integer rowIndex, String externalId, Long groupId, CreditScorecardData scorecard,
+            Collection<LoanChargeData> charges, Collection<CreditScorecardFeatureData> scorecardFeatures, String linkAccountId,
+            String locale, String dateFormat, MLScorecardData mlScorecard) {
 
         return new LoanAccountData(loanTypeEnumOption, clientId, productId, loanOfficerId, submittedOnDate, fundId, principal,
                 numberOfRepayments, repaymentEvery, repaidEveryFrequencyEnums, loanTermFrequency, loanTermFrequencyTypeEnum,
                 nominalInterestRate, expectedDisbursementDate, amortizationEnumOption, interestMethodEnum,
                 interestCalculationPeriodTypeEnum, inArrearsTolerance, transactionProcessingStrategyId, graceOnPrincipalPayment,
-                graceOnInterestPayment, graceOnInterestCharged, interestChargedFromDate, repaymentsStartingFromDate, rowIndex, externalId,
-                null, charges, scorecardFeatures, linkAccountId, locale, dateFormat);
+                graceOnInterestPayment, graceOnInterestCharged, interestChargedFromDate, scorecard, repaymentsStartingFromDate, rowIndex,
+                externalId, null, charges, scorecardFeatures, linkAccountId, locale, dateFormat, mlScorecard);
     }
 
     public static LoanAccountData importInstanceGroup(EnumOptionData loanTypeEnumOption, Long groupIdforGroupLoan, Long productId,
@@ -266,14 +272,15 @@ public final class LoanAccountData {
             EnumOptionData interestMethodEnum, EnumOptionData interestCalculationPeriodEnum, BigDecimal arrearsTolerance,
             Long transactionProcessingStrategyId, Integer graceOnPrincipalPayment, Integer graceOnInterestPayment,
             Integer graceOnInterestCharged, LocalDate interestChargedFromDate, LocalDate repaymentsStartingFromDate, Integer rowIndex,
-            String externalId, String linkAccountId, String locale, String dateFormat) {
+            String externalId, String linkAccountId, CreditScorecardData scorecard, String locale, String dateFormat,
+            MLScorecardData mlScorecard) {
 
         return new LoanAccountData(loanTypeEnumOption, groupIdforGroupLoan, productId, loanOfficerId, submittedOnDate, fundId, principal,
                 numberOfRepayments, repaidEvery, repaidEveryFrequencyEnums, loanTermFrequency, loanTermFrequencyTypeEnum,
                 nominalInterestRate, null, amortizationEnumOption, interestMethodEnum, interestCalculationPeriodEnum, arrearsTolerance,
                 transactionProcessingStrategyId, graceOnPrincipalPayment, graceOnInterestPayment, graceOnInterestCharged,
-                interestChargedFromDate, repaymentsStartingFromDate, rowIndex, externalId, null, null, null, linkAccountId, locale,
-                dateFormat);
+                interestChargedFromDate, scorecard, repaymentsStartingFromDate, rowIndex, externalId, null, null, null, linkAccountId,
+                locale, dateFormat, mlScorecard);
     }
 
     private LoanAccountData(EnumOptionData loanType, Long clientId, Long productId, Long loanOfficerId, LocalDate submittedOnDate,
@@ -282,9 +289,10 @@ public final class LoanAccountData {
             LocalDate expectedDisbursementDate, EnumOptionData amortizationType, EnumOptionData interestType,
             EnumOptionData interestCalculationPeriodType, BigDecimal inArrearsTolerance, Long transactionProcessingStrategyId,
             Integer graceOnPrincipalPayment, Integer graceOnInterestPayment, Integer graceOnInterestCharged,
-            LocalDate interestChargedFromDate, LocalDate repaymentsStartingFromDate, Integer rowIndex, String externalId, Long groupId,
-            Collection<LoanChargeData> charges, Collection<CreditScorecardFeatureData> scorecardFeatures, String linkAccountId,
-            String locale, String dateFormat) {
+            LocalDate interestChargedFromDate, CreditScorecardData scorecard, LocalDate repaymentsStartingFromDate, Integer rowIndex,
+            String externalId, Long groupId, Collection<LoanChargeData> charges, Collection<CreditScorecardFeatureData> scorecardFeatures,
+            String linkAccountId, String locale, String dateFormat, MLScorecardData mlScorecard) {
+        this.scorecard = scorecard;
         this.dateFormat = dateFormat;
         this.locale = locale;
         this.rowIndex = rowIndex;
@@ -427,6 +435,37 @@ public final class LoanAccountData {
 
         this.scorecardFeatures = scorecardFeatures;
         this.scorecardFeatureOptions = null;
+
+        this.mlScorecard = mlScorecard;
+    }
+
+    public static LoanAccountData populateScorecardDetails(LoanAccountData acc, CreditScorecardData scorecard) {
+        return new LoanAccountData(acc.id, acc.accountNo, acc.status, acc.externalId, acc.clientId, acc.clientAccountNo, acc.clientName,
+                acc.clientOfficeId, acc.group, acc.loanType, acc.loanProductId, acc.loanProductName, acc.loanProductDescription,
+                acc.isLoanProductLinkedToFloatingRate, acc.fundId, acc.fundName, acc.loanPurposeId, acc.loanPurposeName, acc.loanOfficerId,
+                acc.loanOfficerName, acc.currency, acc.proposedPrincipal, acc.principal, acc.approvedPrincipal, acc.totalOverpaid,
+                acc.inArrearsTolerance, acc.termFrequency, acc.termPeriodFrequencyType, acc.numberOfRepayments, acc.repaymentEvery,
+                acc.repaymentFrequencyType, acc.repaymentFrequencyNthDayType, acc.repaymentFrequencyDayOfWeekType,
+                acc.transactionProcessingStrategyId, acc.transactionProcessingStrategyName, acc.amortizationType, acc.interestRatePerPeriod,
+                acc.interestRateFrequencyType, acc.annualInterestRate, acc.interestType, acc.isFloatingInterestRate,
+                acc.interestRateDifferential, acc.interestCalculationPeriodType, acc.allowPartialPeriodInterestCalcualtion,
+                acc.expectedFirstRepaymentOnDate, acc.graceOnPrincipalPayment, acc.recurringMoratoriumOnPrincipalPeriods,
+                acc.graceOnInterestPayment, acc.graceOnInterestCharged, acc.interestChargedFromDate, acc.timeline, acc.summary,
+                acc.feeChargesAtDisbursementCharged, acc.repaymentSchedule, acc.transactions, acc.charges, acc.collateral, acc.guarantors,
+                acc.meeting, acc.productOptions, acc.termFrequencyTypeOptions, acc.repaymentFrequencyTypeOptions,
+                acc.repaymentFrequencyNthDayTypeOptions, acc.repaymentFrequencyDaysOfWeekTypeOptions,
+                acc.transactionProcessingStrategyOptions, acc.interestRateFrequencyTypeOptions, acc.amortizationTypeOptions,
+                acc.interestTypeOptions, acc.interestCalculationPeriodTypeOptions, acc.fundOptions, acc.chargeOptions, null,
+                acc.loanOfficerOptions, acc.loanPurposeOptions, acc.loanCollateralOptions, acc.calendarOptions,
+                acc.syncDisbursementWithMeeting, acc.loanCounter, acc.loanProductCounter, acc.notes, acc.accountLinkingOptions,
+                acc.linkedAccount, acc.disbursementDetails, acc.multiDisburseLoan, acc.canDefineInstallmentAmount, acc.fixedEmiAmount,
+                acc.maxOutstandingLoanBalance, acc.emiAmountVariations, acc.memberVariations, acc.product, acc.inArrears,
+                acc.graceOnArrearsAgeing, acc.overdueCharges, acc.isNPA, acc.daysInMonthType, acc.daysInYearType,
+                acc.isInterestRecalculationEnabled, acc.interestRecalculationData, acc.originalSchedule,
+                acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
+                acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
+                acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, scorecard, acc.mlScorecard);
     }
 
     public Integer getRowIndex() {
@@ -594,6 +633,10 @@ public final class LoanAccountData {
         final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
         final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
 
+        final CreditScorecardData scorecard = null;
+
+        final MLScorecardData mlScorecard = null;
+
         return new LoanAccountData(id, accountNo, status, externalId, clientId, clientAccountNo, clientName, clientOfficeId, group,
                 loanType, loanProductId, loanProductName, loanProductDescription, isLoanProductLinkedToFloatingRate, fundId, fundName,
                 loanPurposeId, loanPurposeName, loanOfficerId, loanOfficerName, currencyData, proposedPrincipal, principal, principal,
@@ -614,7 +657,7 @@ public final class LoanAccountData {
                 interestRecalculationData, originalSchedule, createStandingInstructionAtDisbursement, paidInAdvance, interestRatesPeriods,
                 isVariableInstallmentsAllowed, minimumGap, maximumGap, subStatus, canUseForTopup, clientActiveLoanOptions, isTopup,
                 closureLoanId, closureLoanAccountNo, topupAmount, isEqualAmortization, rates, isRatesEnabled, scorecardFeatures,
-                scorecardFeatureOptions);
+                scorecardFeatureOptions, scorecard, mlScorecard);
 
     }
 
@@ -741,6 +784,10 @@ public final class LoanAccountData {
         final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
         final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
 
+        final CreditScorecardData scorecard = null;
+
+        final MLScorecardData mlScorecard = null;
+
         return new LoanAccountData(id, accountNo, status, externalId, clientId, clientAccountNo, clientName, clientOfficeId, group,
                 loanType, loanProductId, loanProductName, loanProductDescription, isLoanProductLinkedToFloatingRate, fundId, fundName,
                 loanPurposeId, loanPurposeName, loanOfficerId, loanOfficerName, currencyData, proposedPrincipal, principal, principal,
@@ -761,7 +808,7 @@ public final class LoanAccountData {
                 originalSchedule, createStandingInstructionAtDisbursement, paidInAdvance, interestRatesPeriods,
                 isVariableInstallmentsAllowed, minimumGap, maximumGap, subStatus, canUseForTopup, clientActiveLoanOptions, isTopup,
                 closureLoanId, closureLoanAccountNo, topupAmount, isEqualAmortization, rates, isRatesEnabled, scorecardFeatures,
-                scorecardFeatureOptions);
+                scorecardFeatureOptions, scorecard, mlScorecard);
 
     }
 
@@ -792,7 +839,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     /**
@@ -920,6 +967,10 @@ public final class LoanAccountData {
         final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
         final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
 
+        final CreditScorecardData scorecard = null;
+
+        final MLScorecardData mlScorecard = null;
+
         return new LoanAccountData(id, accountNo, status, externalId, clientId, clientAccountNo, clientName, clientOfficeId, group,
                 loanType, loanProductId, loanProductName, loanProductDescription, isLoanProductLinkedToFloatingRate, fundId, fundName,
                 loanPurposeId, loanPurposeName, loanOfficerId, loanOfficerName, currencyData, proposedPrincipal, principal, principal,
@@ -940,7 +991,7 @@ public final class LoanAccountData {
                 originalSchedule, createStandingInstructionAtDisbursement, paidInAdvance, interestRatesPeriods,
                 isVariableInstallmentsAllowed, minimumGap, maximumGap, subStatus, canUseForTopup, clientActiveLoanOptions, isTopup,
                 closureLoanId, closureLoanAccountNo, topupAmount, isEqualAmortization, rates, isRatesEnabled, scorecardFeatures,
-                scorecardFeatureOptions);
+                scorecardFeatureOptions, scorecard, mlScorecard);
 
     }
 
@@ -971,7 +1022,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
 
     }
 
@@ -985,7 +1036,7 @@ public final class LoanAccountData {
             final Collection<FundData> fundOptions, final Collection<ChargeData> chargeOptions,
             final Collection<CodeValueData> loanPurposeOptions, final Collection<CodeValueData> loanCollateralOptions,
             final Integer loanCycleNumber, final Collection<LoanAccountSummaryData> clientActiveLoanOptions,
-            final Collection<CreditScorecardFeatureData> scorecardFeatureOptions) {
+            final Collection<CreditScorecardFeatureData> scorecardFeatureOptions, final MLScorecardData mlScorecard) {
 
         final Long id = null;
         final String accountNo = null;
@@ -1106,7 +1157,8 @@ public final class LoanAccountData {
         final Boolean isRatesEnabled = false;
 
         final Collection<CreditScorecardFeatureData> scorecardFeatures = product.scorecardFeatures();
-        // final Collection<ScorecardFeatureData> scorecardFeatureOptions = scorecardFeatureOptions;
+        // final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = scorecardFeatureOptions;
+        final CreditScorecardData scorecard = null;
 
         return new LoanAccountData(id, accountNo, status, externalId, clientId, clientAccountNo, clientName, clientOfficeId, group,
                 loanType, product.getId(), product.getName(), product.getDescription(), product.isLinkedToFloatingInterestRates(),
@@ -1133,7 +1185,7 @@ public final class LoanAccountData {
                 product.isVariableInstallmentsAllowed(), product.getMinimumGapBetweenInstallments(),
                 product.getMaximumGapBetweenInstallments(), subStatus, canUseForTopup, clientActiveLoanOptions, isTopup, closureLoanId,
                 closureLoanAccountNo, topupAmount, product.isEqualAmortization(), rates, isRatesEnabled, scorecardFeatures,
-                scorecardFeatureOptions);
+                scorecardFeatureOptions, scorecard, mlScorecard);
     }
 
     public static LoanAccountData populateLoanProductDefaults(final LoanAccountData acc, final LoanProductData product) {
@@ -1198,7 +1250,7 @@ public final class LoanAccountData {
                 product.isVariableInstallmentsAllowed(), product.getMinimumGapBetweenInstallments(),
                 product.getMaximumGapBetweenInstallments(), acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, product.isEqualAmortization(), acc.rates, acc.isRatesEnabled,
-                scorecardFeatures, scorecardFeatureOptions);
+                scorecardFeatures, scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
 
     }
 
@@ -1230,7 +1282,8 @@ public final class LoanAccountData {
             final LoanInterestRecalculationData interestRecalculationData, final Boolean createStandingInstructionAtDisbursement,
             final Boolean isVariableInstallmentsAllowed, Integer minimumGap, Integer maximumGap, final EnumOptionData subStatus,
             final boolean canUseForTopup, final boolean isTopup, final Long closureLoanId, final String closureLoanAccountNo,
-            final BigDecimal topupAmount, final boolean isEqualAmortization) {
+            final BigDecimal topupAmount, final boolean isEqualAmortization, final CreditScorecardData scorecard,
+            final MLScorecardData mlScorecard) {
 
         final LoanScheduleData repaymentSchedule = null;
         final Collection<LoanTransactionData> transactions = null;
@@ -1292,7 +1345,7 @@ public final class LoanAccountData {
                 isNPA, daysInMonthType, daysInYearType, isInterestRecalculationEnabled, interestRecalculationData, originalSchedule,
                 createStandingInstructionAtDisbursement, paidInAdvance, interestRatesPeriods, isVariableInstallmentsAllowed, minimumGap,
                 maximumGap, subStatus, canUseForTopup, clientActiveLoanOptions, isTopup, closureLoanId, closureLoanAccountNo, topupAmount,
-                isEqualAmortization, rates, isRatesEnabled, scorecardFeatures, scorecardFeatureOptions);
+                isEqualAmortization, rates, isRatesEnabled, scorecardFeatures, scorecardFeatureOptions, scorecard, mlScorecard);
     }
 
     /*
@@ -1347,7 +1400,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, paidInAdvance, interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, clientActiveLoanOptions, acc.isTopup, acc.closureLoanId,
                 acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, rates, isRatesEnabled, scorecardFeatures,
-                scorecardFeatureOptions);
+                scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     public static LoanAccountData associationsAndTemplate(final LoanAccountData acc, final Collection<LoanProductData> productOptions,
@@ -1391,7 +1444,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     public static LoanAccountData associateMemberVariations(final LoanAccountData acc, final Map<Long, Integer> memberLoanCycle) {
@@ -1457,7 +1510,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
 
     }
 
@@ -1492,7 +1545,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     public static LoanAccountData withLoanCalendarData(final LoanAccountData acc, final CalendarData calendarData) {
@@ -1521,7 +1574,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     public static LoanAccountData withOriginalSchedule(final LoanAccountData acc, final LoanScheduleData originalSchedule) {
@@ -1551,7 +1604,7 @@ public final class LoanAccountData {
                 acc.createStandingInstructionAtDisbursement, acc.paidInAdvance, acc.interestRatesPeriods, acc.isVariableInstallmentsAllowed,
                 acc.minimumGap, acc.maximumGap, acc.subStatus, acc.canUseForTopup, acc.clientActiveLoanOptions, acc.isTopup,
                 acc.closureLoanId, acc.closureLoanAccountNo, acc.topupAmount, acc.isEqualAmortization, acc.rates, acc.isRatesEnabled,
-                acc.scorecardFeatures, acc.scorecardFeatureOptions);
+                acc.scorecardFeatures, acc.scorecardFeatureOptions, acc.scorecard, acc.mlScorecard);
     }
 
     private LoanAccountData(final Long id, //
@@ -1605,7 +1658,8 @@ public final class LoanAccountData {
             final Collection<LoanAccountSummaryData> clientActiveLoanOptions, final boolean isTopup, final Long closureLoanId,
             final String closureLoanAccountNo, final BigDecimal topupAmount, final boolean isEqualAmortization, final List<RateData> rates,
             final Boolean isRatesEnabled, final Collection<CreditScorecardFeatureData> scorecardFeatures,
-            final Collection<CreditScorecardFeatureData> scorecardFeatureOptions) {
+            final Collection<CreditScorecardFeatureData> scorecardFeatureOptions, final CreditScorecardData scorecard,
+            final MLScorecardData mlScorecard) {
 
         this.id = id;
         this.accountNo = accountNo;
@@ -1797,6 +1851,10 @@ public final class LoanAccountData {
         } else {
             this.scorecardFeatureOptions = scorecardFeatureOptions;
         }
+
+        this.scorecard = scorecard;
+
+        this.mlScorecard = mlScorecard;
 
     }
 

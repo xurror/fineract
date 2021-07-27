@@ -31,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -188,7 +187,8 @@ public class LoanProduct extends AbstractPersistableCustom {
     @Column(name = "is_equal_amortization", nullable = false)
     private boolean isEqualAmortization = false;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "loanProduct", orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "loan_product_id", referencedColumnName = "id", nullable = false)
     private List<LoanProductScorecardFeature> scorecardFeatures;
 
     public static LoanProduct assembleFromJson(final Fund fund, final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy,
@@ -682,7 +682,7 @@ public class LoanProduct extends AbstractPersistableCustom {
         }
 
         if (scorecardFeatures != null) {
-            this.scorecardFeatures = scorecardFeatures.stream().peek(feat -> feat.setLoanProduct(this)).collect(Collectors.toList());
+            this.scorecardFeatures = scorecardFeatures;
         }
     }
 

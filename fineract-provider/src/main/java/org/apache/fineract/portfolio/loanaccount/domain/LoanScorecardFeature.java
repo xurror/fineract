@@ -19,15 +19,16 @@
 package org.apache.fineract.portfolio.loanaccount.domain;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
+import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 
 @Entity
@@ -41,12 +42,19 @@ public class LoanScorecardFeature extends AbstractPersistableCustom implements S
     @Column(name = "feature_value", nullable = false)
     private String featureValue;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "loan_id", referencedColumnName = "id", nullable = false)
-    private Loan loan;
+    @Column(name = "score")
+    private BigDecimal score;
+
+    @Column(name = "color")
+    private String color;
 
     public LoanScorecardFeature() {
         //
+    }
+
+    public LoanScorecardFeature(LoanProductScorecardFeature scorecardFeature, String featureValue) {
+        this.scorecardFeature = scorecardFeature;
+        this.featureValue = featureValue;
     }
 
     public LoanProductScorecardFeature getScorecardFeature() {
@@ -57,11 +65,53 @@ public class LoanScorecardFeature extends AbstractPersistableCustom implements S
         return featureValue;
     }
 
-    public Loan getLoan() {
-        return loan;
+    public BigDecimal getScore() {
+        return score;
     }
 
-    public CreditScorecardFeatureData toData() {
-        return CreditScorecardFeatureData.loanFeatureInstance(this.scorecardFeature, this.featureValue);
+    public void setScore(BigDecimal score) {
+        this.score = score;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public EnumOptionData getFeatureValueType() {
+        return this.scorecardFeature.getScorecardFeature().getValueType();
+    }
+
+    public List<ScorecardFeatureCriteria> getFeatureCriteria() {
+        return this.scorecardFeature.getFeatureCriteria();
+    }
+
+    public String getFeatureName() {
+        return this.scorecardFeature.getScorecardFeature().getName();
+    }
+
+    public String getColorFromScore(final BigDecimal score) {
+        String color;
+        if (score.longValue() >= this.scorecardFeature.getGreenMin().longValue()
+                && score.longValue() <= this.scorecardFeature.getGreenMax().longValue()) {
+            color = "green";
+        } else if (score.longValue() >= this.scorecardFeature.getAmberMin().longValue()
+                && score.longValue() <= this.scorecardFeature.getAmberMax().longValue()) {
+            color = "amber";
+        } else if (score.longValue() >= this.scorecardFeature.getRedMin().longValue()
+                && score.longValue() <= this.scorecardFeature.getRedMax().longValue()) {
+            color = "red";
+        } else {
+            color = "orange";
+        }
+
+        return color;
+    }
+
+    public BigDecimal getWeightage() {
+        return this.scorecardFeature.getWeightage();
     }
 }

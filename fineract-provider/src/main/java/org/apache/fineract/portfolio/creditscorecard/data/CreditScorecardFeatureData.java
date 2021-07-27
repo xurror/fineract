@@ -20,25 +20,20 @@ package org.apache.fineract.portfolio.creditscorecard.data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
-import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
-import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
-import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 import org.jetbrains.annotations.NotNull;
 
 public final class CreditScorecardFeatureData implements Comparable<CreditScorecardFeatureData>, Serializable {
 
     private final Long id;
+    private final Long featureId;
     private final String name;
     private final EnumOptionData valueType;
     private final EnumOptionData dataType;
     private final EnumOptionData category;
     private final Boolean active;
-
-    private final String featureValue;
 
     private final BigDecimal weightage;
     private final Integer greenMin;
@@ -47,158 +42,144 @@ public final class CreditScorecardFeatureData implements Comparable<CreditScorec
     private final Integer amberMax;
     private final Integer redMin;
     private final Integer redMax;
+
     private final Collection<ScorecardFeatureCriteriaData> criteria;
 
     private final Collection<EnumOptionData> valueTypeOptions;
     private final Collection<EnumOptionData> dataTypeOptions;
     private final Collection<EnumOptionData> categoryOptions;
 
-    private CreditScorecardFeatureData(Long id, String name, EnumOptionData valueType, EnumOptionData dataType, EnumOptionData category,
-            Boolean active, Collection<EnumOptionData> valueTypeOptions, Collection<EnumOptionData> dataTypeOptions,
-            Collection<EnumOptionData> categoryOptions) {
+    public CreditScorecardFeatureData(final Long id, final Long featureId, final String name, final EnumOptionData valueType,
+            final EnumOptionData dataType, final EnumOptionData category, final Boolean active, final BigDecimal weightage,
+            final Integer greenMin, final Integer greenMax, final Integer amberMin, final Integer amberMax, final Integer redMin,
+            final Integer redMax, final Collection<ScorecardFeatureCriteriaData> criteria,
+            final Collection<EnumOptionData> valueTypeOptions, final Collection<EnumOptionData> dataTypeOptions,
+            final Collection<EnumOptionData> categoryOptions) {
         this.id = id;
+
+        this.featureId = featureId;
         this.name = name;
         this.valueType = valueType;
         this.dataType = dataType;
         this.category = category;
         this.active = active;
 
-        this.featureValue = null;
+        this.weightage = weightage;
+        this.greenMin = greenMin;
+        this.greenMax = greenMax;
+        this.amberMin = amberMin;
+        this.amberMax = amberMax;
+        this.redMin = redMin;
+        this.redMax = redMax;
 
-        this.weightage = null;
-        this.greenMin = null;
-        this.greenMax = null;
-        this.amberMin = null;
-        this.amberMax = null;
-        this.redMin = null;
-        this.redMax = null;
-
-        this.criteria = null;
+        this.criteria = criteria;
 
         this.valueTypeOptions = valueTypeOptions;
         this.dataTypeOptions = dataTypeOptions;
         this.categoryOptions = categoryOptions;
     }
 
-    private CreditScorecardFeatureData(Long id, String name, EnumOptionData valueType, EnumOptionData dataType, EnumOptionData category,
-            Boolean active, final BigDecimal weightage, final Integer greenMin, final Integer greenMax, final Integer amberMin,
-            final Integer amberMax, final Integer redMin, final Integer redMax) {
-        this.id = id;
-        this.name = name;
-        this.valueType = valueType;
-        this.dataType = dataType;
-        this.category = category;
-        this.active = active;
+    public static CreditScorecardFeatureData instance(final Long id, final Long featureId, final String name,
+            final EnumOptionData valueType, final EnumOptionData dataType, final EnumOptionData category, final Boolean active,
+            final BigDecimal weightage, final Integer greenMin, final Integer greenMax, final Integer amberMin, final Integer amberMax,
+            final Integer redMin, final Integer redMax) {
 
-        this.featureValue = null;
+        final Collection<ScorecardFeatureCriteriaData> criteria = new ArrayList<>();
 
-        this.weightage = weightage;
-        this.greenMin = greenMin;
-        this.greenMax = greenMax;
-        this.amberMin = amberMin;
-        this.amberMax = amberMax;
-        this.redMin = redMin;
-        this.redMax = redMax;
+        final Collection<EnumOptionData> valueTypeOptions = null;
+        final Collection<EnumOptionData> dataTypeOptions = null;
+        final Collection<EnumOptionData> categoryOptions = null;
 
-        this.criteria = null;
-
-        this.valueTypeOptions = null;
-        this.dataTypeOptions = null;
-        this.categoryOptions = null;
+        return new CreditScorecardFeatureData(id, featureId, name, valueType, dataType, category, active, weightage, greenMin, greenMax,
+                amberMin, amberMax, redMin, redMax, criteria, valueTypeOptions, dataTypeOptions, categoryOptions);
     }
 
-    private CreditScorecardFeatureData(final Long id, final String name, final EnumOptionData valueType, final EnumOptionData dataType,
-            final EnumOptionData category, final Boolean active, final BigDecimal weightage, final Integer greenMin, final Integer greenMax,
-            final Integer amberMin, final Integer amberMax, final Integer redMin, final Integer redMax,
-            final Collection<ScorecardFeatureCriteriaData> criteria) {
-        this.id = id;
-        this.name = name;
-        this.valueType = valueType;
-        this.dataType = dataType;
-        this.category = category;
-        this.active = active;
+    public static CreditScorecardFeatureData template(final Collection<EnumOptionData> valueTypeOptions,
+            final Collection<EnumOptionData> dataTypeOptions, final Collection<EnumOptionData> categoryOptions) {
 
-        this.featureValue = null;
+        final Long id = null;
+        final Long featureId = null;
+        final String name = null;
+        final EnumOptionData valueType = null;
+        final EnumOptionData dataType = null;
+        final EnumOptionData category = null;
+        final Boolean active = null;
 
-        this.weightage = weightage;
-        this.greenMin = greenMin;
-        this.greenMax = greenMax;
-        this.amberMin = amberMin;
-        this.amberMax = amberMax;
-        this.redMin = redMin;
-        this.redMax = redMax;
+        final BigDecimal weightage = null;
+        final Integer greenMin = null;
+        final Integer greenMax = null;
+        final Integer amberMin = null;
+        final Integer amberMax = null;
+        final Integer redMin = null;
+        final Integer redMax = null;
 
-        this.criteria = criteria;
+        final Collection<ScorecardFeatureCriteriaData> criteria = null;
 
-        this.valueTypeOptions = null;
-        this.dataTypeOptions = null;
-        this.categoryOptions = null;
+        return new CreditScorecardFeatureData(id, featureId, name, valueType, dataType, category, active, weightage, greenMin, greenMax,
+                amberMin, amberMax, redMin, redMax, criteria, valueTypeOptions, dataTypeOptions, categoryOptions);
     }
 
-    private CreditScorecardFeatureData(final Long id, final String name, final EnumOptionData valueType, final EnumOptionData dataType,
-            final EnumOptionData category, final Boolean active, final BigDecimal weightage, final Integer greenMin, final Integer greenMax,
-            final Integer amberMin, final Integer amberMax, final Integer redMin, final Integer redMax,
-            final Collection<ScorecardFeatureCriteriaData> criteria, final String featureValue) {
-        this.id = id;
-        this.name = name;
-        this.valueType = valueType;
-        this.dataType = dataType;
-        this.category = category;
-        this.active = active;
+    public static CreditScorecardFeatureData withTemplate(CreditScorecardFeatureData scf, CreditScorecardFeatureData template) {
 
-        this.featureValue = featureValue;
-
-        this.weightage = weightage;
-        this.greenMin = greenMin;
-        this.greenMax = greenMax;
-        this.amberMin = amberMin;
-        this.amberMax = amberMax;
-        this.redMin = redMin;
-        this.redMax = redMax;
-
-        this.criteria = criteria;
-
-        this.valueTypeOptions = null;
-        this.dataTypeOptions = null;
-        this.categoryOptions = null;
+        return new CreditScorecardFeatureData(scf.id, scf.featureId, scf.name, scf.valueType, scf.dataType, scf.category, scf.active,
+                scf.weightage, scf.greenMin, scf.greenMax, scf.amberMin, scf.amberMax, scf.redMin, scf.redMax, scf.criteria,
+                template.valueTypeOptions, template.dataTypeOptions, template.categoryOptions);
     }
 
-    public static CreditScorecardFeatureData instance(Long id, String name, EnumOptionData valueType, EnumOptionData dataType,
-            EnumOptionData category, Boolean active) {
-        return new CreditScorecardFeatureData(id, name, valueType, dataType, category, active, null, null, null);
+    public Long getId() {
+        return id;
     }
 
-    public static CreditScorecardFeatureData template(Collection<EnumOptionData> valueTypeOptions,
-            Collection<EnumOptionData> dataTypeOptions, Collection<EnumOptionData> categoryOptions) {
-        return new CreditScorecardFeatureData(null, null, null, null, null, null, valueTypeOptions, dataTypeOptions, categoryOptions);
+    public String getName() {
+        return name;
     }
 
-    public static CreditScorecardFeatureData withTemplate(CreditScorecardFeatureData scorecardFeature,
-            CreditScorecardFeatureData template) {
-        return new CreditScorecardFeatureData(scorecardFeature.id, scorecardFeature.name, scorecardFeature.valueType,
-                scorecardFeature.dataType, scorecardFeature.category, scorecardFeature.active, template.valueTypeOptions,
-                template.dataTypeOptions, template.categoryOptions);
+    public EnumOptionData getValueType() {
+        return valueType;
     }
 
-    public static CreditScorecardFeatureData loanProductFeatureInstance(final CreditScorecardFeature scf, final BigDecimal weightage,
-            final Integer greenMin, final Integer greenMax, final Integer amberMin, final Integer amberMax, final Integer redMin,
-            final Integer redMax, final List<ScorecardFeatureCriteria> scorecardFeatureCriteria) {
-
-        final List<ScorecardFeatureCriteriaData> criteriaData = scorecardFeatureCriteria.stream().map(ScorecardFeatureCriteria::toData)
-                .collect(Collectors.toList());
-        return new CreditScorecardFeatureData(scf.getId(), scf.getName(), scf.getValueType(), scf.getDataType(), scf.getCategory(),
-                scf.isActive(), weightage, greenMin, greenMax, amberMin, amberMax, redMin, redMax, criteriaData);
+    public EnumOptionData getDataType() {
+        return dataType;
     }
 
-    public static CreditScorecardFeatureData loanFeatureInstance(final LoanProductScorecardFeature lpscf, final String featureValue) {
+    public EnumOptionData getCategory() {
+        return category;
+    }
 
-        final CreditScorecardFeature scf = lpscf.getScorecardFeature();
+    public Boolean getActive() {
+        return active;
+    }
 
-        final Collection<ScorecardFeatureCriteriaData> criteriaData = lpscf.getFeatureCriteria().stream()
-                .map(ScorecardFeatureCriteria::toData).collect(Collectors.toList());
-        return new CreditScorecardFeatureData(scf.getId(), scf.getName(), scf.getValueType(), scf.getDataType(), scf.getCategory(),
-                scf.isActive(), lpscf.getWeightage(), lpscf.getGreenMin(), lpscf.getGreenMax(), lpscf.getAmberMin(), lpscf.getAmberMax(),
-                lpscf.getRedMin(), lpscf.getRedMax(), criteriaData, featureValue);
+    public BigDecimal getWeightage() {
+        return weightage;
+    }
+
+    public Integer getGreenMin() {
+        return greenMin;
+    }
+
+    public Integer getGreenMax() {
+        return greenMax;
+    }
+
+    public Integer getAmberMin() {
+        return amberMin;
+    }
+
+    public Integer getAmberMax() {
+        return amberMax;
+    }
+
+    public Integer getRedMin() {
+        return redMin;
+    }
+
+    public Integer getRedMax() {
+        return redMax;
+    }
+
+    public Collection<ScorecardFeatureCriteriaData> getCriteria() {
+        return criteria;
     }
 
     @Override

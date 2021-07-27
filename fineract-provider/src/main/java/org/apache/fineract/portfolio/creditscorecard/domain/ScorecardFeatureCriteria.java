@@ -18,6 +18,8 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.domain;
 
+import java.math.BigDecimal;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -32,13 +34,13 @@ public class ScorecardFeatureCriteria extends AbstractPersistableCustom {
     private String criteria;
 
     @Column(name = "score", nullable = false)
-    private Integer score;
+    private BigDecimal score;
 
     public ScorecardFeatureCriteria() {
         //
     }
 
-    public ScorecardFeatureCriteria(String criteria, Integer score) {
+    public ScorecardFeatureCriteria(String criteria, BigDecimal score) {
         this.criteria = criteria;
         this.score = score;
     }
@@ -51,15 +53,33 @@ public class ScorecardFeatureCriteria extends AbstractPersistableCustom {
         this.criteria = criteria;
     }
 
-    public Integer getScore() {
+    public BigDecimal getScore() {
         return score;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(BigDecimal score) {
         this.score = score;
     }
 
     public ScorecardFeatureCriteriaData toData() {
         return ScorecardFeatureCriteriaData.instance(this.getId(), this.criteria, this.score);
+    }
+
+    @Override
+    public String toString() {
+        return "ScorecardFeatureCriteria{" + "criteria='" + criteria + '\'' + ", score=" + score + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ScorecardFeatureCriteria)) return false;
+        ScorecardFeatureCriteria that = (ScorecardFeatureCriteria) o;
+        return Objects.equals(criteria, that.criteria) && Objects.equals(score, that.score);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(criteria, score);
     }
 }

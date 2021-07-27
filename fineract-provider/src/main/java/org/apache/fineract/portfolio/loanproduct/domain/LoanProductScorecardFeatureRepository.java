@@ -18,20 +18,8 @@
  */
 package org.apache.fineract.portfolio.loanproduct.domain;
 
-import java.util.Collection;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface LoanProductScorecardFeatureRepository
-        extends JpaRepository<LoanProductScorecardFeature, Long>, JpaSpecificationExecutor<LoanProductScorecardFeature> {
-
-    @Query("select feature from LoanProductScorecardFeature feature WHERE feature.scorecardFeature.active = true AND feature.scorecardFeature.deleted = false AND feature.loanProduct.id = :productId AND feature.scorecardFeature.id = :featureId")
-    Optional<LoanProductScorecardFeature> retrieveFeatureByProductIdAndScorecardFeatureId(@Param("productId") Long productId,
-            @Param("featureId") Long featureId);
-
-    @Query("SELECT feature FROM LoanProductScorecardFeature feature WHERE feature.scorecardFeature.active = true AND feature.scorecardFeature.deleted = false AND feature.loanProduct.id = :loanProductId")
-    Collection<LoanProductScorecardFeature> findByLoanProductId(@Param("loanProductId") Long loanProductId);
-}
+        extends JpaRepository<LoanProductScorecardFeature, Long>, JpaSpecificationExecutor<LoanProductScorecardFeature> {}

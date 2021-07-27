@@ -25,12 +25,12 @@ import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
 import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
 
@@ -63,13 +63,9 @@ public class LoanProductScorecardFeature extends AbstractPersistableCustom {
     @JoinColumn(name = "scorecard_feature_id", referencedColumnName = "id", nullable = false)
     private CreditScorecardFeature scorecardFeature;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.DETACH }, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "loan_product_scorecard_feature_id", referencedColumnName = "id")
     private List<ScorecardFeatureCriteria> featureCriteria;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "loan_product_id", referencedColumnName = "id", nullable = false)
-    private LoanProduct loanProduct;
 
     public LoanProductScorecardFeature() {
         //
@@ -140,19 +136,6 @@ public class LoanProductScorecardFeature extends AbstractPersistableCustom {
         this.featureCriteria = featureCriteria;
     }
 
-    public LoanProduct getLoanProduct() {
-        return loanProduct;
-    }
-
-    public void setLoanProduct(LoanProduct loanProduct) {
-        this.loanProduct = loanProduct;
-    }
-
-    public CreditScorecardFeatureData toData() {
-        return CreditScorecardFeatureData.loanProductFeatureInstance(this.scorecardFeature, this.weightage, this.greenMin, this.greenMax,
-                this.amberMin, this.amberMax, this.redMin, this.redMax, this.featureCriteria);
-    }
-
     public LoanProductScorecardFeature update(final JsonObject jsonObject) {
         this.weightage = jsonObject.get("weightage").getAsBigDecimal();
         this.greenMin = jsonObject.get("greenMin").getAsInt();
@@ -161,7 +144,7 @@ public class LoanProductScorecardFeature extends AbstractPersistableCustom {
         this.amberMax = jsonObject.get("amberMax").getAsInt();
         this.redMin = jsonObject.get("redMin").getAsInt();
         this.redMax = jsonObject.get("redMax").getAsInt();
-        return null;
+        return this;
     }
 
     @Override
@@ -172,20 +155,19 @@ public class LoanProductScorecardFeature extends AbstractPersistableCustom {
         return Objects.equals(weightage, that.weightage) && Objects.equals(greenMin, that.greenMin)
                 && Objects.equals(greenMax, that.greenMax) && Objects.equals(amberMin, that.amberMin)
                 && Objects.equals(amberMax, that.amberMax) && Objects.equals(redMin, that.redMin) && Objects.equals(redMax, that.redMax)
-                && Objects.equals(scorecardFeature, that.scorecardFeature) && Objects.equals(featureCriteria, that.featureCriteria)
-                && Objects.equals(loanProduct, that.loanProduct);
+                && Objects.equals(scorecardFeature, that.scorecardFeature) && Objects.equals(featureCriteria, that.featureCriteria);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(weightage, greenMin, greenMax, amberMin, amberMax, redMin, redMax, scorecardFeature, featureCriteria,
-                loanProduct);
+        return Objects.hash(weightage, greenMin, greenMax, amberMin, amberMax, redMin, redMax, scorecardFeature, featureCriteria);
     }
 
     @Override
     public String toString() {
         return "LoanProductScorecardFeature{" + "weightage=" + weightage + ", greenMin=" + greenMin + ", greenMax=" + greenMax
                 + ", amberMin=" + amberMin + ", amberMax=" + amberMax + ", redMin=" + redMin + ", redMax=" + redMax + ", scorecardFeature="
-                + scorecardFeature + ", featureCriteria=" + featureCriteria + ", loanProduct=" + loanProduct + '}';
+                + scorecardFeature + ", featureCriteria=" + featureCriteria + '}';
     }
+
 }

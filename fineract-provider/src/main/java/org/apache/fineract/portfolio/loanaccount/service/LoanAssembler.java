@@ -49,6 +49,8 @@ import org.apache.fineract.portfolio.client.domain.ClientRepositoryWrapper;
 import org.apache.fineract.portfolio.client.exception.ClientNotActiveException;
 import org.apache.fineract.portfolio.collateral.domain.LoanCollateral;
 import org.apache.fineract.portfolio.collateral.service.CollateralAssembler;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
+import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecard;
 import org.apache.fineract.portfolio.fund.domain.Fund;
 import org.apache.fineract.portfolio.fund.domain.FundRepository;
 import org.apache.fineract.portfolio.fund.exception.FundNotFoundException;
@@ -65,6 +67,7 @@ import org.apache.fineract.portfolio.loanaccount.domain.LoanDisbursementDetails;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanLifecycleStateMachine;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepaymentScheduleTransactionProcessorFactory;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepositoryWrapper;
+import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeature;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanStatus;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanSummaryWrapper;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransactionProcessingStrategyRepository;
@@ -109,6 +112,7 @@ public class LoanAssembler {
     private final WorkingDaysRepositoryWrapper workingDaysRepository;
     private final LoanUtilService loanUtilService;
     private final RateAssembler rateAssembler;
+    private final LoanScorecardAssembler loanScorecardAssembler;
 
     @Autowired
     public LoanAssembler(final FromJsonHelper fromApiJsonHelper, final LoanRepositoryWrapper loanRepository,
@@ -120,7 +124,8 @@ public class LoanAssembler {
             final CollateralAssembler loanCollateralAssembler, final LoanSummaryWrapper loanSummaryWrapper,
             final LoanRepaymentScheduleTransactionProcessorFactory loanRepaymentScheduleTransactionProcessorFactory,
             final HolidayRepository holidayRepository, final ConfigurationDomainService configurationDomainService,
-            final WorkingDaysRepositoryWrapper workingDaysRepository, final LoanUtilService loanUtilService, RateAssembler rateAssembler) {
+            final WorkingDaysRepositoryWrapper workingDaysRepository, final LoanUtilService loanUtilService, RateAssembler rateAssembler,
+            final LoanScorecardAssembler loanScorecardAssembler) {
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.loanRepository = loanRepository;
         this.loanProductRepository = loanProductRepository;
@@ -140,6 +145,7 @@ public class LoanAssembler {
         this.workingDaysRepository = workingDaysRepository;
         this.loanUtilService = loanUtilService;
         this.rateAssembler = rateAssembler;
+        this.loanScorecardAssembler = loanScorecardAssembler;
     }
 
     public Loan assembleFrom(final Long accountId) {
@@ -225,6 +231,19 @@ public class LoanAssembler {
             }
         }
 
+        final CreditScorecard creditScorecard = this.loanScorecardAssembler.scoringMethod(element);
+
+        Set<LoanScorecardFeature> loanScorecardFeature = null;
+        MLScorecard mlScorecard = null;
+        if (creditScorecard != null) {
+            if (creditScorecard.getScoringMethod().equalsIgnoreCase("ruleBased")) {
+                loanScorecardFeature = this.loanScorecardAssembler.loanScorecardFeatureFromParsedJson(element);
+            } else if (creditScorecard.getScoringMethod().equalsIgnoreCase("ml")
+                    || creditScorecard.getScoringMethod().equals("statistical")) {
+                mlScorecard = this.loanScorecardAssembler.mlScorecardFieldsFromParsedJson(element);
+            }
+        }
+
         Loan loanApplication = null;
         Client client = null;
         Group group = null;
@@ -266,21 +285,23 @@ public class LoanAssembler {
             loanApplication = Loan.newIndividualLoanApplicationFromGroup(accountNo, client, group, loanType.getId().intValue(), loanProduct,
                     fund, loanOfficer, loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
                     syncDisbursementWithMeeting, fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance,
-                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates);
+                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates, loanScorecardFeature,
+                    mlScorecard, creditScorecard);
 
         } else if (group != null) {
 
             loanApplication = Loan.newGroupLoanApplication(accountNo, group, loanType.getId().intValue(), loanProduct, fund, loanOfficer,
                     loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
                     syncDisbursementWithMeeting, fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance,
-                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates);
+                    createStandingInstructionAtDisbursement, isFloatingInterestRate, interestRateDifferential, rates, loanScorecardFeature,
+                    mlScorecard, creditScorecard);
 
         } else if (client != null) {
 
             loanApplication = Loan.newIndividualLoanApplication(accountNo, client, loanType.getId().intValue(), loanProduct, fund,
                     loanOfficer, loanPurpose, loanTransactionProcessingStrategy, loanProductRelatedDetail, loanCharges, collateral,
                     fixedEmiAmount, disbursementDetails, maxOutstandingLoanBalance, createStandingInstructionAtDisbursement,
-                    isFloatingInterestRate, interestRateDifferential, rates);
+                    isFloatingInterestRate, interestRateDifferential, rates, loanScorecardFeature, mlScorecard, creditScorecard);
 
         }
 

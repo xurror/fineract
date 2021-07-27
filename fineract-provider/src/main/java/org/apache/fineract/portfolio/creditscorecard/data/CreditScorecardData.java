@@ -18,6 +18,45 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.data;
 
-public class CreditScorecardData {
+import java.io.Serializable;
 
+public final class CreditScorecardData implements Serializable {
+
+    private final Long id;
+    private final String scoringMethod;
+    private final String scoringModel;
+
+    private final MLScorecardData mlScorecard;
+    private final RuleBasedScorecardData ruleBasedScorecard;
+
+    private CreditScorecardData(final Long id, final String scoringMethod, final String scoringModel, final MLScorecardData mlScorecard,
+            final RuleBasedScorecardData ruleBasedScorecard) {
+        this.id = id;
+        this.scoringMethod = scoringMethod;
+        this.scoringModel = scoringModel;
+
+        this.mlScorecard = mlScorecard;
+        this.ruleBasedScorecard = ruleBasedScorecard;
+    }
+
+    public static CreditScorecardData instance(final Long id, final String scoringMethod, final String scoringModel) {
+        final MLScorecardData mlScorecardData = null;
+        final RuleBasedScorecardData ruleBasedScorecardData = null;
+
+        return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, ruleBasedScorecardData);
+    }
+
+    public static CreditScorecardData ruleBasedInstance(final Long id, final String scoringMethod, final String scoringModel,
+            final RuleBasedScorecardData ruleBasedScorecard) {
+        final MLScorecardData mlScorecardData = null;
+
+        return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, ruleBasedScorecard);
+    }
+
+    public static CreditScorecardData mlInstance(final Long id, final String scoringMethod, final String scoringModel,
+            final MLScorecardData mlScorecard) {
+        final RuleBasedScorecardData ruleBasedScorecardData = null;
+
+        return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecard, ruleBasedScorecardData);
+    }
 }

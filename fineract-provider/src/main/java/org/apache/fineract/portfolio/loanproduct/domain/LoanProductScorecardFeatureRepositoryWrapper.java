@@ -18,7 +18,6 @@
  */
 package org.apache.fineract.portfolio.loanproduct.domain;
 
-import java.util.Collection;
 import java.util.List;
 import org.apache.fineract.portfolio.creditscorecard.exception.FeatureNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +42,6 @@ public class LoanProductScorecardFeatureRepositoryWrapper {
     @Transactional(readOnly = true)
     public LoanProductScorecardFeature findOneWithNotFoundDetection(final Long id) {
         return this.repository.findById(id).orElseThrow(() -> new FeatureNotFoundException(id));
-    }
-
-    public Collection<LoanProductScorecardFeature> findFeaturesByLoanProductId(Long loanProductId) {
-        return this.repository.findByLoanProductId(loanProductId);
     }
 
     public LoanProductScorecardFeature saveAndFlush(final LoanProductScorecardFeature scorecardFeature) {

@@ -16,20 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.creditscorecard.service;
+package org.apache.fineract.portfolio.creditscorecard.domain;
 
-import org.apache.fineract.infrastructure.core.api.JsonCommand;
-import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-public interface CreditScorecardWritePlatformService {
-
-    CommandProcessingResult createScoringFeature(JsonCommand command);
-
-    CommandProcessingResult deleteScoringFeature(Long entityId);
-
-    CommandProcessingResult updateScoringFeature(Long entityId, JsonCommand command);
-
-    CreditScorecardData assessCreditRisk(Long loanId);
+@Repository
+public interface MLScorecardRepository extends JpaRepository<MLScorecard, Long>, JpaSpecificationExecutor<MLScorecard> {
 
 }
