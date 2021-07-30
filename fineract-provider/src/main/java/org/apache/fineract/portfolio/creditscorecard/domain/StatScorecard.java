@@ -18,10 +18,15 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.domain;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
-@Repository
-public interface ScorecardFeatureCriteriaRepository
-        extends JpaRepository<FeatureCriteria, Long>, JpaSpecificationExecutor<FeatureCriteria> {}
+@Entity
+@Table(name = "m_stat_scorecard")
+public class StatScorecard extends AbstractPersistableCustom {
+
+    public StatScorecard() {
+        //
+    }
+}

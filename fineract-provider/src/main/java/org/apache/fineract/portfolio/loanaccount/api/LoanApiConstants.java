@@ -134,7 +134,6 @@ public interface LoanApiConstants {
 
     String recalculationCompoundingFrequencyDate = "recalculationCompoundingFrequencyDate";
 
-    String scoringMethod = "scoringMethod";
-    String scoringData = "scoringData";
+    String scorecard = "scorecard";
 
 }

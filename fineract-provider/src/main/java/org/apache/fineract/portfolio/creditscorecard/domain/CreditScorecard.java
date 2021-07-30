@@ -18,8 +18,12 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.domain;
 
+import java.util.Objects;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
@@ -33,13 +37,34 @@ public class CreditScorecard extends AbstractPersistableCustom {
     @Column(name = "scorecard_scoring_model")
     private String scoringModel;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "rule_based_scorecard_id", referencedColumnName = "id")
+    private RuleBasedScorecard ruleBasedScorecard;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "stat_scorecard_id", referencedColumnName = "id")
+    private StatScorecard statScorecard;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "ml_scorecard_id", referencedColumnName = "id")
+    private MLScorecard mlScorecard;
+
+    public CreditScorecard() {
+        //
+    }
+
     public CreditScorecard(String scoringMethod, String scoringModel) {
         this.scoringMethod = scoringMethod;
         this.scoringModel = scoringModel;
     }
 
-    public CreditScorecard() {
-        //
+    public CreditScorecard(String scoringMethod, String scoringModel, RuleBasedScorecard ruleBasedScorecard, StatScorecard statScorecard,
+            MLScorecard mlScorecard) {
+        this.scoringMethod = scoringMethod;
+        this.scoringModel = scoringModel;
+        this.ruleBasedScorecard = ruleBasedScorecard;
+        this.statScorecard = statScorecard;
+        this.mlScorecard = mlScorecard;
     }
 
     public String getScoringMethod() {
@@ -48,5 +73,38 @@ public class CreditScorecard extends AbstractPersistableCustom {
 
     public String getScoringModel() {
         return scoringModel;
+    }
+
+    public RuleBasedScorecard getRuleBasedScorecard() {
+        return ruleBasedScorecard;
+    }
+
+    public StatScorecard getStatScorecard() {
+        return statScorecard;
+    }
+
+    public MLScorecard getMlScorecard() {
+        return mlScorecard;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CreditScorecard)) return false;
+        CreditScorecard that = (CreditScorecard) o;
+        return Objects.equals(scoringMethod, that.scoringMethod) && Objects.equals(scoringModel, that.scoringModel)
+                && Objects.equals(ruleBasedScorecard, that.ruleBasedScorecard) && Objects.equals(statScorecard, that.statScorecard)
+                && Objects.equals(mlScorecard, that.mlScorecard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(scoringMethod, scoringModel, ruleBasedScorecard, statScorecard, mlScorecard);
+    }
+
+    @Override
+    public String toString() {
+        return "CreditScorecard{" + "scoringMethod='" + scoringMethod + '\'' + ", scoringModel='" + scoringModel + '\''
+                + ", ruleBasedScorecard=" + ruleBasedScorecard + ", statScorecard=" + statScorecard + ", mlScorecard=" + mlScorecard + '}';
     }
 }

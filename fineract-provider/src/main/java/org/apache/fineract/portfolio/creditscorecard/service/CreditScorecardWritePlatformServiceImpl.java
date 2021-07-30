@@ -18,9 +18,7 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.service;
 
-import io.gsonfire.GsonFireBuilder;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -35,29 +33,30 @@ import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
-import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidationException;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
 import org.apache.fineract.portfolio.charge.service.ChargeWritePlatformServiceJpaRepositoryImpl;
-import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
-import org.apache.fineract.portfolio.creditscorecard.data.MLScorecardData;
-import org.apache.fineract.portfolio.creditscorecard.data.RuleBasedScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeatureRepository;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardRepository;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureConfiguration;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteria;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteriaScore;
 import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecard;
 import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecardFields;
 import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecardRepository;
-import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
+import org.apache.fineract.portfolio.creditscorecard.domain.RuleBasedScorecard;
+import org.apache.fineract.portfolio.creditscorecard.domain.RuleBasedScorecardRepository;
+import org.apache.fineract.portfolio.creditscorecard.domain.StatScorecard;
 import org.apache.fineract.portfolio.creditscorecard.exception.FeatureCannotBeDeletedException;
 import org.apache.fineract.portfolio.creditscorecard.exception.FeatureNotFoundException;
-import org.apache.fineract.portfolio.creditscorecard.serialization.CreditScorecardApiJsonDeserializer;
+import org.apache.fineract.portfolio.creditscorecard.serialization.CreditScorecardApiJsonHelper;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepository;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeature;
-import org.apache.fineract.portfolio.loanaccount.exception.LoanNotFoundException;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProduct;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductRepository;
+import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,21 +74,26 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
     private final LoanRepository loanRepository;
     private final LoanProductRepository loanProductRepository;
-    private final CreditScorecardApiJsonDeserializer fromApiJsonDeserializer;
+    private final CreditScorecardApiJsonHelper fromApiJsonDeserializer;
     private final CreditScorecardFeatureRepository featureRepository;
     private final MLScorecardRepository mlScorecardRepository;
+    private final CreditScorecardRepository scorecardRepository;
+    private final RuleBasedScorecardRepository ruleBasedScorecardRepository;
 
     @Autowired
     public CreditScorecardWritePlatformServiceImpl(final PlatformSecurityContext context,
-            final CreditScorecardApiJsonDeserializer fromApiJsonDeserializer, final LoanRepository loanRepository,
+            final CreditScorecardApiJsonHelper fromApiJsonDeserializer, final LoanRepository loanRepository,
             final LoanProductRepository loanProductRepository, final CreditScorecardFeatureRepository featureRepository,
-            final MLScorecardRepository mlScorecardRepository) {
+            final MLScorecardRepository mlScorecardRepository, final CreditScorecardRepository scorecardRepository,
+            final RuleBasedScorecardRepository ruleBasedScorecardRepository) {
         this.context = context;
         this.fromApiJsonDeserializer = fromApiJsonDeserializer;
         this.loanRepository = loanRepository;
         this.loanProductRepository = loanProductRepository;
         this.featureRepository = featureRepository;
+        this.scorecardRepository = scorecardRepository;
         this.mlScorecardRepository = mlScorecardRepository;
+        this.ruleBasedScorecardRepository = ruleBasedScorecardRepository;
     }
 
     @Transactional
@@ -145,55 +149,61 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
     }
 
     @Override
-    public CreditScorecardData assessCreditRisk(final Long loanId) {
-        final Loan loan = this.loanRepository.findById(loanId).orElseThrow(() -> new LoanNotFoundException(loanId));
-        final CreditScorecard scorecard = loan.getCreditScorecard();
+    public CreditScorecard assessCreditRisk(final Loan loan) {
+        final CreditScorecard scorecard = loan.getScorecard();
+
         if (scorecard != null) {
             final String scoringMethod = scorecard.getScoringMethod();
 
             if (scoringMethod.equalsIgnoreCase("ruleBased")) {
 
-                final List<RuleBasedScorecardData.CriteriaScoreData> criteriaScore = new ArrayList<>();
+                final RuleBasedScorecard ruleBasedScorecard = scorecard.getRuleBasedScorecard();
 
-                final List<LoanScorecardFeature> features = loan.getScorecardFeatures();
-                for (LoanScorecardFeature feature : features) {
+                final List<FeatureCriteriaScore> criteriaScores = ruleBasedScorecard.getCriteriaScores();
 
-                    final EnumOptionData valueType = feature.getFeatureValueType();
+                for (final FeatureCriteriaScore criteriaScore : criteriaScores) {
 
-                    final List<ScorecardFeatureCriteria> featureCriteriaScores = feature.getFeatureCriteria();
+                    final LoanProductScorecardFeature lpFeature = criteriaScore.getFeature();
 
-                    for (ScorecardFeatureCriteria featureCriteria : featureCriteriaScores) {
+                    final FeatureConfiguration featureConfig = lpFeature.getFeatureConfiguration();
 
-                        final String featureValue = feature.getFeatureValue();
+                    final EnumOptionData valueType = lpFeature.getScorecardFeature().getValueType();
 
-                        if (featureValue == null) {
-                            throw new PlatformApiDataValidationException(null);
-                        }
-                        if (valueType.getValue().equalsIgnoreCase("nominal") || valueType.getValue().equalsIgnoreCase("binary")) {
+                    final List<FeatureCriteria> featureCriteriaList = lpFeature.getFeatureCriteria();
 
-                            if (featureValue.equalsIgnoreCase(featureCriteria.getCriteria())) {
-                                final BigDecimal score = featureCriteria.getScore().multiply(feature.getWeightage());
-                                final String color = feature.getColorFromScore(score);
-                                criteriaScore.add(
-                                        RuleBasedScorecardData.criteriaScoreInstance(feature.getFeatureName(), featureValue, score, color));
-                                break;
-                            }
+                    for (final FeatureCriteria featureCriteria : featureCriteriaList) {
 
-                        } else {
+                        final String value = criteriaScore.getValue();
 
-                            final String criteria = featureCriteria.getCriteria().strip();
+                        if (value != null) {
 
-                            final float min = Float.parseFloat(criteria.substring(0, criteria.indexOf("-")).strip());
-                            final float max = Float.parseFloat(criteria.substring(criteria.indexOf("-") + 1).strip());
+                            if (valueType.getValue().equalsIgnoreCase("nominal") || valueType.getValue().equalsIgnoreCase("binary")) {
 
-                            final float value = Float.parseFloat(featureValue);
+                                if (value.equalsIgnoreCase(featureCriteria.getCriteria())) {
+                                    final BigDecimal score = featureCriteria.getScore().multiply(featureConfig.getWeightage());
+                                    final String color = featureConfig.getColorFromScore(score);
+                                    criteriaScore.setScore(score, color);
+                                    break;
 
-                            if (value >= min && value <= max) {
-                                final BigDecimal score = featureCriteria.getScore().multiply(feature.getWeightage());
-                                final String color = feature.getColorFromScore(score);
-                                criteriaScore.add(RuleBasedScorecardData.criteriaScoreInstance(feature.getFeatureName(),
-                                        feature.getFeatureValue(), score, color));
-                                break;
+                                }
+
+                            } else {
+
+                                final String criteria = featureCriteria.getCriteria().strip();
+
+                                final float min = Float.parseFloat(criteria.substring(0, criteria.indexOf("-")).strip());
+                                final float max = Float.parseFloat(criteria.substring(criteria.indexOf("-") + 1).strip());
+
+                                final float floatValue = Float.parseFloat(value);
+
+                                if (floatValue >= min && floatValue <= max) {
+                                    final BigDecimal score = featureCriteria.getScore().multiply(featureConfig.getWeightage());
+                                    final String color = featureConfig.getColorFromScore(score);
+                                    criteriaScore.setScore(score, color);
+                                    break;
+
+                                }
+
                             }
 
                         }
@@ -206,7 +216,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
                 int greenCount = 0;
                 int amberCount = 0;
                 int redCount = 0;
-                for (RuleBasedScorecardData.CriteriaScoreData ctScore : criteriaScore) {
+                for (final FeatureCriteriaScore ctScore : criteriaScores) {
                     scorecardScore = scorecardScore.add(ctScore.getScore());
 
                     if (ctScore.getColor().equalsIgnoreCase("green")) {
@@ -231,16 +241,17 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                 }
 
-                return CreditScorecardData.ruleBasedInstance(scorecard.getId(), scorecard.getScoringMethod(), scorecard.getScoringModel(),
-                        RuleBasedScorecardData.instance(criteriaScore, scorecardScore, scorecardColor));
+                ruleBasedScorecard.setScore(scorecardScore, scorecardColor);
+
+                return scorecard;
 
             } else if (scoringMethod.equalsIgnoreCase("ml")) {
 
+                final MLScorecard mlScorecard = scorecard.getMlScorecard();
+
+                final MLScorecardFields loanScorecardFields = mlScorecard.getScorecardFields();
+
                 final Map<String, Object> predictionData = new HashMap<>();
-
-                final MLScorecard mlScoreacard = loan.getMlScorecard();
-
-                final MLScorecardFields loanScorecardFields = mlScoreacard.getScorecardFields();
 
                 predictionData.put("age", loanScorecardFields.getAge());
                 predictionData.put("sex", loanScorecardFields.getSex());
@@ -252,7 +263,6 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                 try {
 
-                    final GsonFireBuilder fireBuilder = new GsonFireBuilder();
                     final AlgorithmsApi apiInstance = new AlgorithmsApi(new ApiClient());
 
                     final String classifier = "RandomForestClassifier"; // String | The algorithm/classifier to use
@@ -263,15 +273,8 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
                     final PredictionResponse predictionResponse = apiInstance.algorithmsPredict(classifier, version, dataset, status,
                             predictionData);
 
-                    mlScoreacard.setPredictionResponse(predictionResponse);
+                    mlScorecard.setPredictionResponse(predictionResponse);
 
-                    this.mlScorecardRepository.save(mlScoreacard);
-
-                    final MLScorecardData mlData = MLScorecardData.instanceFromPrediction(mlScoreacard, predictionResponse.getLabel(),
-                            BigDecimal.valueOf(predictionResponse.getProbability()));
-
-                    return CreditScorecardData.mlInstance(scorecard.getId(), scorecard.getScoringMethod(), scorecard.getScoringModel(),
-                            mlData);
                 } catch (ApiException e) {
                     System.err.println("Exception when calling AlgorithmsApi#algorithmsPredict");
                     System.err.println("Status code: " + e.getCode());
@@ -279,10 +282,10 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
                     System.err.println("Response headers: " + e.getResponseHeaders());
                     e.printStackTrace();
                 }
-                return null;
 
-            } else {
-                return null;
+            } else if (scoringMethod.equalsIgnoreCase("stat")) {
+
+                final StatScorecard statScorecard = scorecard.getStatScorecard();
 
             }
 
@@ -290,6 +293,10 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
             return null;
 
         }
+
+        this.scorecardRepository.save(scorecard);
+
+        return scorecard;
     }
 
     @Transactional
@@ -306,9 +313,8 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
         }
 
         final Collection<LoanProduct> loanProducts = this.loanProductRepository.retrieveLoanProductsByScorecardFeatureId(entityId);
-        final Collection<Loan> loans = this.loanRepository.retrieveLoansByScorecardFeatureId(entityId);
 
-        if (!loanProducts.isEmpty() || !loans.isEmpty()) {
+        if (!loanProducts.isEmpty()) {
             throw new FeatureCannotBeDeletedException("error.msg.scorecard.feature.cannot.be.deleted.it.is.already.used.in.loan",
                     "This Scoring Feature cannot be deleted, it is already used in loan");
         }

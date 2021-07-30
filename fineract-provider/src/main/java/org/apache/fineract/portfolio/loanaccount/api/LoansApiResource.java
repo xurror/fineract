@@ -101,7 +101,6 @@ import org.apache.fineract.portfolio.collateral.service.CollateralReadPlatformSe
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
 import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardReadPlatformService;
-import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardWritePlatformService;
 import org.apache.fineract.portfolio.floatingrates.data.InterestRatePeriodData;
 import org.apache.fineract.portfolio.fund.data.FundData;
 import org.apache.fineract.portfolio.fund.service.FundReadPlatformService;
@@ -116,7 +115,6 @@ import org.apache.fineract.portfolio.loanaccount.data.LoanTermVariationsData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionData;
 import org.apache.fineract.portfolio.loanaccount.data.PaidInAdvanceData;
 import org.apache.fineract.portfolio.loanaccount.data.RepaymentScheduleRelatedLoanData;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTermVariationType;
 import org.apache.fineract.portfolio.loanaccount.exception.LoanTemplateTypeRequiredException;
 import org.apache.fineract.portfolio.loanaccount.exception.NotSupportedLoanTemplateTypeException;
@@ -133,7 +131,6 @@ import org.apache.fineract.portfolio.loanproduct.LoanProductConstants;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
 import org.apache.fineract.portfolio.loanproduct.data.TransactionProcessingStrategyData;
 import org.apache.fineract.portfolio.loanproduct.domain.InterestMethod;
-import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.loanproduct.service.LoanDropdownReadPlatformService;
 import org.apache.fineract.portfolio.loanproduct.service.LoanProductReadPlatformService;
 import org.apache.fineract.portfolio.note.data.NoteData;
@@ -260,10 +257,6 @@ public class LoansApiResource {
     private final DefaultToApiJsonSerializer<GlimRepaymentTemplate> glimTemplateToApiJsonSerializer;
     private final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService;
     private final CreditScorecardReadPlatformService scorecardReadPlatformService;
-    private final LoanProductScorecardFeatureRepositoryWrapper loanProductFeatureRepository;
-    private final LoanScorecardFeatureRepositoryWrapper loanFeatureRepository;
-
-    private final CreditScorecardWritePlatformService scorecardWritePlatformService;
 
     @Autowired
     public LoansApiResource(final PlatformSecurityContext context, final LoanReadPlatformService loanReadPlatformService,
@@ -290,10 +283,7 @@ public class LoansApiResource {
             final ConfigurationDomainService configurationDomainService,
             final DefaultToApiJsonSerializer<GlimRepaymentTemplate> glimTemplateToApiJsonSerializer,
             final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService,
-            final CreditScorecardReadPlatformService scorecardReadPlatformService,
-            final LoanProductScorecardFeatureRepositoryWrapper loanProductFeatureRepository,
-            final LoanScorecardFeatureRepositoryWrapper loanFeatureRepository,
-            final CreditScorecardWritePlatformService scorecardWritePlatformService) {
+            final CreditScorecardReadPlatformService scorecardReadPlatformService) {
         this.context = context;
         this.loanReadPlatformService = loanReadPlatformService;
         this.loanProductReadPlatformService = loanProductReadPlatformService;
@@ -326,9 +316,6 @@ public class LoansApiResource {
         this.glimTemplateToApiJsonSerializer = glimTemplateToApiJsonSerializer;
         this.glimAccountInfoReadPlatformService = glimAccountInfoReadPlatformService;
         this.scorecardReadPlatformService = scorecardReadPlatformService;
-        this.loanFeatureRepository = loanFeatureRepository;
-        this.loanProductFeatureRepository = loanProductFeatureRepository;
-        this.scorecardWritePlatformService = scorecardWritePlatformService;
     }
 
     /*
@@ -466,10 +453,12 @@ public class LoansApiResource {
                 accountLinkingOptions = getaccountLinkingOptions(newLoanAccount, clientId, groupId);
             }
 
+            final CreditScorecardData scorecard = this.scorecardReadPlatformService.LoanScorecardTemplate();
+
             // add product options, allowed loan officers and calendar options
             // (calendar options will be null in individual loan)
             newLoanAccount = LoanAccountData.associationsAndTemplate(newLoanAccount, productOptions, allowedLoanOfficers, calendarOptions,
-                    accountLinkingOptions, isRatesEnabled);
+                    accountLinkingOptions, isRatesEnabled, scorecard);
         }
         final List<DatatableData> datatableTemplates = this.entityDatatableChecksReadService
                 .retrieveTemplates(StatusEnum.CREATE.getCode().longValue(), EntityTables.LOAN.getName(), productId);
@@ -513,7 +502,8 @@ public class LoansApiResource {
 
         LoanAccountData loanBasicDetails = this.loanReadPlatformService.retrieveOne(loanId);
 
-        final CreditScorecardData scorecard = this.scorecardWritePlatformService.assessCreditRisk(loanId);
+        final CreditScorecardData scorecard = this.scorecardReadPlatformService.retrieveCreditScorecard(loanBasicDetails.getScorecardId());
+
         loanBasicDetails = LoanAccountData.populateScorecardDetails(loanBasicDetails, scorecard);
 
         if (loanBasicDetails.isInterestRecalculationEnabled()) {
@@ -751,13 +741,16 @@ public class LoansApiResource {
 
         final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
 
+        final CreditScorecardData scorecardWithTemplate = this.scorecardReadPlatformService.LoanScorecardTemplate(scorecard);
+
         final LoanAccountData loanAccount = LoanAccountData.associationsAndTemplate(loanBasicDetails, repaymentSchedule, loanRepayments,
                 charges, collateral, guarantors, meeting, productOptions, loanTermFrequencyTypeOptions, repaymentFrequencyTypeOptions,
                 repaymentFrequencyNthDayTypeOptions, repaymentFrequencyDayOfWeekTypeOptions, repaymentStrategyOptions,
                 interestRateFrequencyTypeOptions, amortizationTypeOptions, interestTypeOptions, interestCalculationPeriodTypeOptions,
                 fundOptions, chargeOptions, chargeTemplate, allowedLoanOfficers, loanPurposeOptions, loanCollateralOptions, calendarOptions,
                 notes, accountLinkingOptions, linkedAccount, disbursementData, emiAmountVariations, overdueCharges, paidInAdvanceTemplate,
-                interestRatesPeriods, clientActiveLoanOptions, rates, isRatesEnabled, scorecardFeatures, scorecardFeatureOptions);
+                interestRatesPeriods, clientActiveLoanOptions, rates, isRatesEnabled, scorecardFeatures, scorecardFeatureOptions,
+                scorecardWithTemplate);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters(),
                 mandatoryResponseParameters);

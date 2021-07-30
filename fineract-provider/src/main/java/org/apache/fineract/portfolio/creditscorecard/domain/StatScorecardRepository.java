@@ -23,5 +23,4 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ScorecardFeatureCriteriaRepository
-        extends JpaRepository<FeatureCriteria, Long>, JpaSpecificationExecutor<FeatureCriteria> {}
+public interface StatScorecardRepository extends JpaRepository<StatScorecard, Long>, JpaSpecificationExecutor<StatScorecard> {}

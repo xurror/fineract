@@ -21,54 +21,31 @@ package org.apache.fineract.portfolio.creditscorecard.data;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteriaScore;
+import org.apache.fineract.portfolio.creditscorecard.domain.RuleBasedScorecard;
 
 public final class RuleBasedScorecardData implements Serializable {
 
-    private final Collection<CriteriaScoreData> criteriaScores;
-    private final BigDecimal scorecardScore;
-    private final String scorecardColor;
+    private final Long id;
+    private final Collection<FeatureCriteriaScoreData> criteriaScores;
+    private final BigDecimal overallScore;
+    private final String overallColor;
 
-    private RuleBasedScorecardData(final Collection<CriteriaScoreData> criteriaScores, final BigDecimal scorecardScore,
-            final String scorecardColor) {
+    private RuleBasedScorecardData(final Long id, final Collection<FeatureCriteriaScoreData> criteriaScores, final BigDecimal overallScore,
+            final String overallColor) {
+        this.id = id;
         this.criteriaScores = criteriaScores;
-        this.scorecardScore = scorecardScore;
-        this.scorecardColor = scorecardColor;
+        this.overallScore = overallScore;
+        this.overallColor = overallColor;
     }
 
-    public static RuleBasedScorecardData instance(final Collection<CriteriaScoreData> criteriaScores, final BigDecimal scorecardScore,
-            final String scorecardColor) {
-        return new RuleBasedScorecardData(criteriaScores, scorecardScore, scorecardColor);
-    }
+    public static RuleBasedScorecardData instance(RuleBasedScorecard rbs) {
+        final List<FeatureCriteriaScore> ctScores = rbs.getCriteriaScores();
+        final List<FeatureCriteriaScoreData> ctScoresData = ctScores.stream().map(FeatureCriteriaScoreData::instance)
+                .collect(Collectors.toList());
 
-    public static CriteriaScoreData criteriaScoreInstance(final String feature, final String value, final BigDecimal score,
-            final String color) {
-        return CriteriaScoreData.instance(feature, value, score, color);
-    }
-
-    public static class CriteriaScoreData {
-
-        private final String feature;
-        private final String value;
-        private final BigDecimal score;
-        private final String color;
-
-        private CriteriaScoreData(String feature, String value, BigDecimal score, String color) {
-            this.feature = feature;
-            this.value = value;
-            this.score = score;
-            this.color = color;
-        }
-
-        private static CriteriaScoreData instance(final String feature, final String value, final BigDecimal score, final String color) {
-            return new CriteriaScoreData(feature, value, score, color);
-        }
-
-        public BigDecimal getScore() {
-            return score;
-        }
-
-        public String getColor() {
-            return color;
-        }
+        return new RuleBasedScorecardData(rbs.getId(), ctScoresData, rbs.getOverallScore(), rbs.getOverallColor());
     }
 }

@@ -100,7 +100,6 @@ import org.apache.fineract.portfolio.common.domain.DayOfWeekType;
 import org.apache.fineract.portfolio.common.domain.NthDayType;
 import org.apache.fineract.portfolio.common.domain.PeriodFrequencyType;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
-import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecard;
 import org.apache.fineract.portfolio.floatingrates.data.FloatingRateDTO;
 import org.apache.fineract.portfolio.floatingrates.data.FloatingRatePeriodData;
 import org.apache.fineract.portfolio.fund.domain.Fund;
@@ -404,17 +403,9 @@ public class Loan extends AbstractPersistableCustom {
     @JoinTable(name = "m_loan_rate", joinColumns = @JoinColumn(name = "loan_id"), inverseJoinColumns = @JoinColumn(name = "rate_id"))
     private List<Rate> rates;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "loan_scorecard_feature_id", referencedColumnName = "id", nullable = false)
-    private List<LoanScorecardFeature> scorecardFeatures;
-
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "loan_ml_scorecard_id", referencedColumnName = "id")
-    private MLScorecard mlScorecard;
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "loan_credit_scorecard_id", referencedColumnName = "id")
-    private CreditScorecard creditScorecard;
+    private CreditScorecard scorecard;
 
     public static Loan newIndividualLoanApplication(final String accountNo, final Client client, final Integer loanType,
             final LoanProduct loanProduct, final Fund fund, final Staff officer, final CodeValue loanPurpose,
@@ -423,14 +414,14 @@ public class Loan extends AbstractPersistableCustom {
             final Set<LoanCollateral> collateral, final BigDecimal fixedEmiAmount, final List<LoanDisbursementDetails> disbursementDetails,
             final BigDecimal maxOutstandingLoanBalance, final Boolean createStandingInstructionAtDisbursement,
             final Boolean isFloatingInterestRate, final BigDecimal interestRateDifferential, final List<Rate> rates,
-            final Set<LoanScorecardFeature> loanScorecardFeature, final MLScorecard mlScorecard, final CreditScorecard creditScorecard) {
+            final CreditScorecard scorecard) {
         final LoanStatus status = null;
         final Group group = null;
         final Boolean syncDisbursementWithMeeting = null;
         return new Loan(accountNo, client, group, loanType, fund, officer, loanPurpose, transactionProcessingStrategy, loanProduct,
                 loanRepaymentScheduleDetail, status, loanCharges, collateral, syncDisbursementWithMeeting, fixedEmiAmount,
                 disbursementDetails, maxOutstandingLoanBalance, createStandingInstructionAtDisbursement, isFloatingInterestRate,
-                interestRateDifferential, rates, loanScorecardFeature, mlScorecard, creditScorecard);
+                interestRateDifferential, rates, scorecard);
     }
 
     public static Loan newGroupLoanApplication(final String accountNo, final Group group, final Integer loanType,
@@ -440,14 +431,13 @@ public class Loan extends AbstractPersistableCustom {
             final Set<LoanCollateral> collateral, final Boolean syncDisbursementWithMeeting, final BigDecimal fixedEmiAmount,
             final List<LoanDisbursementDetails> disbursementDetails, final BigDecimal maxOutstandingLoanBalance,
             final Boolean createStandingInstructionAtDisbursement, final Boolean isFloatingInterestRate,
-            final BigDecimal interestRateDifferential, final List<Rate> rates, final Set<LoanScorecardFeature> loanScorecardFeature,
-            final MLScorecard mlScorecard, final CreditScorecard creditScorecard) {
+            final BigDecimal interestRateDifferential, final List<Rate> rates, final CreditScorecard scorecard) {
         final LoanStatus status = null;
         final Client client = null;
         return new Loan(accountNo, client, group, loanType, fund, officer, loanPurpose, transactionProcessingStrategy, loanProduct,
                 loanRepaymentScheduleDetail, status, loanCharges, collateral, syncDisbursementWithMeeting, fixedEmiAmount,
                 disbursementDetails, maxOutstandingLoanBalance, createStandingInstructionAtDisbursement, isFloatingInterestRate,
-                interestRateDifferential, rates, loanScorecardFeature, mlScorecard, creditScorecard);
+                interestRateDifferential, rates, scorecard);
     }
 
     public static Loan newIndividualLoanApplicationFromGroup(final String accountNo, final Client client, final Group group,
@@ -457,13 +447,12 @@ public class Loan extends AbstractPersistableCustom {
             final Set<LoanCollateral> collateral, final Boolean syncDisbursementWithMeeting, final BigDecimal fixedEmiAmount,
             final List<LoanDisbursementDetails> disbursementDetails, final BigDecimal maxOutstandingLoanBalance,
             final Boolean createStandingInstructionAtDisbursement, final Boolean isFloatingInterestRate,
-            final BigDecimal interestRateDifferential, final List<Rate> rates, final Set<LoanScorecardFeature> loanScorecardFeature,
-            final MLScorecard mlScorecard, final CreditScorecard creditScorecard) {
+            final BigDecimal interestRateDifferential, final List<Rate> rates, final CreditScorecard scorecard) {
         final LoanStatus status = null;
         return new Loan(accountNo, client, group, loanType, fund, officer, loanPurpose, transactionProcessingStrategy, loanProduct,
                 loanRepaymentScheduleDetail, status, loanCharges, collateral, syncDisbursementWithMeeting, fixedEmiAmount,
                 disbursementDetails, maxOutstandingLoanBalance, createStandingInstructionAtDisbursement, isFloatingInterestRate,
-                interestRateDifferential, rates, loanScorecardFeature, mlScorecard, creditScorecard);
+                interestRateDifferential, rates, scorecard);
     }
 
     protected Loan() {
@@ -477,7 +466,7 @@ public class Loan extends AbstractPersistableCustom {
             final BigDecimal fixedEmiAmount, final List<LoanDisbursementDetails> disbursementDetails,
             final BigDecimal maxOutstandingLoanBalance, final Boolean createStandingInstructionAtDisbursement,
             final Boolean isFloatingInterestRate, final BigDecimal interestRateDifferential, final List<Rate> rates,
-            final Set<LoanScorecardFeature> loanScorecardFeatures, final MLScorecard mlScorecard, final CreditScorecard creditScorecard) {
+            final CreditScorecard scorecard) {
 
         this.loanRepaymentScheduleDetail = loanRepaymentScheduleDetail;
         this.loanRepaymentScheduleDetail.validateRepaymentPeriodWithGraceSettings();
@@ -536,14 +525,7 @@ public class Loan extends AbstractPersistableCustom {
         // rates added here
         this.rates = rates;
 
-        if (loanScorecardFeatures != null) {
-            this.scorecardFeatures = new ArrayList<>(loanScorecardFeatures);
-        } else {
-            this.scorecardFeatures = null;
-        }
-
-        this.creditScorecard = creditScorecard;
-        this.mlScorecard = mlScorecard;
+        this.scorecard = scorecard;
     }
 
     private LoanSummary updateSummaryWithTotalFeeChargesDueAtDisbursement(final BigDecimal feeChargesDueAtDisbursement) {
@@ -6662,15 +6644,11 @@ public class Loan extends AbstractPersistableCustom {
         this.loanType = loanType;
     }
 
-    public List<LoanScorecardFeature> getScorecardFeatures() {
-        return scorecardFeatures;
+    public CreditScorecard getScorecard() {
+        return scorecard;
     }
 
-    public MLScorecard getMlScorecard() {
-        return mlScorecard;
-    }
-
-    public CreditScorecard getCreditScorecard() {
-        return creditScorecard;
+    public boolean hasScorecard() {
+        return this.scorecard != null;
     }
 }

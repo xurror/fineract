@@ -16,7 +16,6 @@
 -- specific language governing permissions and limitations
 -- under the License.
 --
-
 CREATE TABLE `m_credit_scorecard_feature` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(100) NOT NULL,
@@ -36,10 +35,11 @@ INSERT INTO `m_permission` (`grouping`, `code`, `entity_name`, `action_name`, `c
 INSERT INTO `m_permission` (`grouping`, `code`, `entity_name`, `action_name`, `can_maker_checker`) VALUES ('portfolio', 'UPDATE_CREDIT_SCORECARD_FEATURE', 'CREDIT_SCORECARD_FEATURE', 'UPDATE', 0);
 
 
-CREATE TABLE `m_loan_product_scorecard_feature` (
+CREATE TABLE `m_product_loan_scorecard_feature` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `loan_product_id` BIGINT NOT NULL,
+    `product_loan_id` BIGINT NOT NULL,
     `scorecard_feature_id` BIGINT NOT NULL,
+
 
     `weightage` DECIMAL(6,5) NOT NULL DEFAULT '0.000000',
     `green_min` INT NOT NULL,
@@ -49,56 +49,53 @@ CREATE TABLE `m_loan_product_scorecard_feature` (
     `red_min` INT NOT NULL,
     `red_max` INT NOT NULL,
 
+
     PRIMARY KEY (`id`),
     KEY `scorecard_feature_id` (`scorecard_feature_id`),
-    KEY `m_loan_product_scorecard_feature_ibfk_2` (`loan_product_id`),
-    CONSTRAINT `m_loan_product_scorecard_feature_ibfk_1` FOREIGN KEY (`scorecard_feature_id`) REFERENCES `m_credit_scorecard_feature` (`id`),
-    CONSTRAINT `m_loan_product_scorecard_feature_ibfk_2` FOREIGN KEY (`loan_product_id`) REFERENCES `m_product_loan` (`id`)
+    KEY `m_product_loan_scorecard_feature_ibfk_2` (`product_loan_id`),
+    CONSTRAINT `m_product_loan_scorecard_feature_ibfk_1` FOREIGN KEY (`scorecard_feature_id`) REFERENCES `m_credit_scorecard_feature` (`id`),
+    CONSTRAINT `m_product_loan_scorecard_feature_ibfk_2` FOREIGN KEY (`product_loan_id`) REFERENCES `m_product_loan` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 
-CREATE TABLE IF NOT EXISTS `m_credit_scorecard_feature_criteria` (
+CREATE TABLE IF NOT EXISTS `m_scorecard_feature_criteria` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `criteria` VARCHAR(20) NOT NULL,
     `score` DECIMAL(6,5) NOT NULL DEFAULT '0.000000',
-    `loan_product_scorecard_feature_id` BIGINT NOT NULL,
+    `product_loan_scorecard_feature_id` BIGINT DEFAULT NULL,
     PRIMARY KEY (`id`),
-    CONSTRAINT `m_credit_scorecard_feature_criteria_ibfk_1` FOREIGN KEY (`loan_product_scorecard_feature_id`) REFERENCES `m_loan_product_scorecard_feature`(`id`)
-);
-
-
-CREATE TABLE `m_loan_scorecard_feature` (
-    `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `loan_scorecard_feature_id` BIGINT NOT NULL,
-    `loan_product_scorecard_feature_id` BIGINT NOT NULL,
-    `feature_value` varchar(100) DEFAULT NULL,
-    `score` DECIMAL(6,5) DEFAULT '0.000000',
-    `color` varchar(50) DEFAULT NULL,
-
-
-    PRIMARY KEY (`id`),
-    KEY `loan_scorecard_feature_id` (`loan_scorecard_feature_id`),
-    KEY `loan_product_scorecard_feature_id` (`loan_product_scorecard_feature_id`),
-    CONSTRAINT `m_loan_scorecard_feature_ibfk_1` FOREIGN KEY (`loan_scorecard_feature_id`) REFERENCES `m_loan` (`id`),
-    CONSTRAINT `m_loan_scorecard_feature_ibfk_2` FOREIGN KEY (`loan_product_scorecard_feature_id`) REFERENCES `m_loan_product_scorecard_feature` (`id`)
+    CONSTRAINT `m_scorecard_feature_criteria_ibfk_1` FOREIGN KEY (`product_loan_scorecard_feature_id`) REFERENCES `m_product_loan_scorecard_feature`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
-ALTER TABLE `m_loan`
-    ADD COLUMN `loan_scorecard_feature_id` BIGINT NULL,
-    ADD CONSTRAINT `FK_loan_scorecard_feature_m_loan_m_loan_scorecard_feature` FOREIGN KEY (`loan_scorecard_feature_id`) REFERENCES `m_loan_scorecard_feature` (`id`);
 
 
-CREATE TABLE `m_credit_scorecard` (
+
+CREATE TABLE `m_rule_based_scorecard` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `scorecard_scoring_method` VARCHAR(100) NOT NULL,
-    `scorecard_scoring_model` VARCHAR(100) NOT NULL,
+    `overall_score` DECIMAL(6,5) NULL,
+    `overall_color` VARCHAR(20) NULL,
+
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
-ALTER TABLE `m_loan`
-    ADD COLUMN `loan_credit_scorecard_id` BIGINT NULL DEFAULT NULL,
-    ADD CONSTRAINT `FK_credit_scorecard_m_loan_m_credit_scorecard` FOREIGN KEY (`loan_credit_scorecard_id`) REFERENCES `m_credit_scorecard` (`id`);
+CREATE TABLE IF NOT EXISTS `m_scorecard_feature_criteria_score` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `value` VARCHAR(20) NOT NULL,
+    `score` DECIMAL(6,5) NULL,
+    `color` VARCHAR(20) NULL,
 
+    `product_loan_scorecard_feature_id` BIGINT DEFAULT NULL,
+    `rule_based_scorecard_id` BIGINT DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `m_scorecard_feature_criteria_score_ibfk_1` FOREIGN KEY (`product_loan_scorecard_feature_id`) REFERENCES `m_product_loan_scorecard_feature`(`id`),
+    CONSTRAINT `m_scorecard_feature_criteria_score_ibfk_2` FOREIGN KEY (`rule_based_scorecard_id`) REFERENCES `m_rule_based_scorecard`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
+
+CREATE TABLE `m_stat_scorecard` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
 CREATE TABLE `m_ml_scorecard` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -110,11 +107,26 @@ CREATE TABLE `m_ml_scorecard` (
     `duration` INT DEFAULT NULL,
     `purpose` VARCHAR(50) DEFAULT NULL,
     `predicted_risk` VARCHAR(50) DEFAULT NULL,
+    `accuracy` DECIMAL(19, 6) DEFAULT NULL,
     `actual_risk` VARCHAR(50) DEFAULT NULL,
     `prediction_request_id` INT DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 
+CREATE TABLE `m_credit_scorecard` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `scorecard_scoring_method` VARCHAR(100) NOT NULL,
+    `scorecard_scoring_model` VARCHAR(100) NOT NULL,
+
+    `rule_based_scorecard_id` BIGINT DEFAULT NULL,
+    `stat_scorecard_id` BIGINT DEFAULT NULL,
+    `ml_scorecard_id` BIGINT DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `m_credit_scorecard_ibfk_1` FOREIGN KEY (`rule_based_scorecard_id`) REFERENCES `m_rule_based_scorecard`(`id`),
+    CONSTRAINT `m_credit_scorecard_ibfk_2` FOREIGN KEY (`stat_scorecard_id`) REFERENCES `m_stat_scorecard`(`id`),
+    CONSTRAINT `m_credit_scorecard_ibfk_3` FOREIGN KEY (`ml_scorecard_id`) REFERENCES `m_ml_scorecard`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
+
 ALTER TABLE `m_loan`
-    ADD COLUMN `loan_ml_scorecard_id` BIGINT NULL DEFAULT NULL,
-    ADD CONSTRAINT `FK_credit_ml_scorecard_m_loan_m_ml_scorecard` FOREIGN KEY (`loan_ml_scorecard_id`) REFERENCES `m_ml_scorecard` (`id`);
+    ADD COLUMN `loan_credit_scorecard_id` BIGINT NULL DEFAULT NULL,
+ADD CONSTRAINT `FK_credit_scorecard_m_loan_m_credit_scorecard` FOREIGN KEY (`loan_credit_scorecard_id`) REFERENCES `m_credit_scorecard` (`id`);

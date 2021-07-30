@@ -16,10 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.loanaccount.domain;
+package org.apache.fineract.portfolio.creditscorecard.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-public interface LoanScorecardFeatureRepository
-        extends JpaRepository<LoanScorecardFeature, Long>, JpaSpecificationExecutor<LoanScorecardFeature> {}
+@Repository
+public interface RuleBasedScorecardRepository
+        extends JpaRepository<RuleBasedScorecard, Long>, JpaSpecificationExecutor<RuleBasedScorecard> {}

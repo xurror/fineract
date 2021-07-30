@@ -16,12 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.creditscorecard.domain;
+package org.apache.fineract.portfolio.creditscorecard.data;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface ScorecardFeatureCriteriaRepository
-        extends JpaRepository<FeatureCriteria, Long>, JpaSpecificationExecutor<FeatureCriteria> {}
+public final class StatScorecardData {}

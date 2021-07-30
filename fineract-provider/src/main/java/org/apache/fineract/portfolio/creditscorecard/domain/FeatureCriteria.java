@@ -27,8 +27,8 @@ import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.creditscorecard.data.ScorecardFeatureCriteriaData;
 
 @Entity
-@Table(name = "m_credit_scorecard_feature_criteria")
-public class ScorecardFeatureCriteria extends AbstractPersistableCustom {
+@Table(name = "m_scorecard_feature_criteria")
+public class FeatureCriteria extends AbstractPersistableCustom {
 
     @Column(name = "criteria", nullable = false)
     private String criteria;
@@ -36,11 +36,11 @@ public class ScorecardFeatureCriteria extends AbstractPersistableCustom {
     @Column(name = "score", nullable = false)
     private BigDecimal score;
 
-    public ScorecardFeatureCriteria() {
+    public FeatureCriteria() {
         //
     }
 
-    public ScorecardFeatureCriteria(String criteria, BigDecimal score) {
+    public FeatureCriteria(String criteria, BigDecimal score) {
         this.criteria = criteria;
         this.score = score;
     }
@@ -73,8 +73,8 @@ public class ScorecardFeatureCriteria extends AbstractPersistableCustom {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ScorecardFeatureCriteria)) return false;
-        ScorecardFeatureCriteria that = (ScorecardFeatureCriteria) o;
+        if (!(o instanceof FeatureCriteria)) return false;
+        FeatureCriteria that = (FeatureCriteria) o;
         return Objects.equals(criteria, that.criteria) && Objects.equals(score, that.score);
     }
 

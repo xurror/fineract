@@ -19,8 +19,8 @@
 package org.apache.fineract.portfolio.creditscorecard.service;
 
 import java.util.Collection;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
-import org.apache.fineract.portfolio.creditscorecard.data.MLScorecardData;
 
 public interface CreditScorecardReadPlatformService {
 
@@ -28,5 +28,11 @@ public interface CreditScorecardReadPlatformService {
 
     Collection<CreditScorecardFeatureData> retrieveLoanProductFeatures(final Long productId);
 
-    MLScorecardData retrieveMLScorecardTemplate(Long clientId);
+    CreditScorecardData retrieveScorecardTemplate(Long clientId);
+
+    CreditScorecardData retrieveCreditScorecard(Long scorecardId);
+
+    CreditScorecardData LoanScorecardTemplate();
+
+    CreditScorecardData LoanScorecardTemplate(CreditScorecardData scorecard);
 }

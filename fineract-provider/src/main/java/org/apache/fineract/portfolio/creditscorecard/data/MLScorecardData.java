@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
-import org.apache.fineract.infrastructure.codes.data.CodeValueData;
 import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecard;
 import org.apache.fineract.portfolio.creditscorecard.domain.MLScorecardFields;
 
@@ -69,34 +68,20 @@ public class MLScorecardData implements Serializable {
         this.housingOptions = housingOptions;
     }
 
-    public static MLScorecardData instance(final Integer age, final String sex, final BigDecimal creditAmount, final Integer duration,
-            final String purpose) {
+    public static MLScorecardData instance(final MLScorecard sc) {
+        final MLScorecardFields scf = sc.getScorecardFields();
 
-        final Long id = null;
-        final String job = null;
-        final String housing = null;
+        final Collection<Map<String, Object>> jobOptions = null;
+        final Collection<Map<String, Object>> genderOptions = null;
+        final Collection<Map<String, Object>> purposeOptions = null;
+        final Collection<Map<String, Object>> housingOptions = null;
 
-        final String risk = null;
-        final BigDecimal accuracy = null;
-
-        final Collection<Map<String, Object>> jobOptions = new ArrayList<>(
-                Arrays.asList(Map.of("code", 2, "value", "unemployed"), Map.of("code", 3, "value", "self-employed")));
-
-        final Collection<Map<String, Object>> purposeOptions = new ArrayList<>(
-                Arrays.asList(Map.of("code", "radio/TV", "value", "Radio/TV"), Map.of("code", "repairs", "value", "Repairs"),
-                        Map.of("code", "business", "value", "Business"), Map.of("code", "education", "value", "Education")));
-
-        final Collection<Map<String, Object>> housingOptions = new ArrayList<>(Arrays.asList(Map.of("code", "own", "value", "Own"),
-                Map.of("code", "free", "value", "Free"), Map.of("code", "rent", "value", "Rent")));
-
-        final Collection<Map<String, Object>> genderOptions = new ArrayList<>(
-                Arrays.asList(Map.of("code", "male", "value", "Male"), Map.of("code", "female", "value", "Female")));
-
-        return new MLScorecardData(id, age, sex, job, housing, creditAmount, duration, purpose, risk, accuracy, jobOptions, genderOptions,
-                purposeOptions, housingOptions);
+        return new MLScorecardData(sc.getId(), scf.getAge(), scf.getSex(), scf.getJob(), scf.getHousing(), scf.getCreditAmount(),
+                scf.getDuration(), scf.getPurpose(), sc.getPredictedRisk(), sc.getAccuracy(), jobOptions, genderOptions, purposeOptions,
+                housingOptions);
     }
 
-    public static MLScorecardData template(Integer age, String sex, Collection<CodeValueData> genderCodeValue) {
+    public static MLScorecardData template(Integer age, String sex) {
 
         final Long id = null;
 
@@ -127,9 +112,4 @@ public class MLScorecardData implements Serializable {
                 purposeOptions, housingOptions);
     }
 
-    public static MLScorecardData instanceFromPrediction(MLScorecard sc, final String risk, final BigDecimal accuracy) {
-        final MLScorecardFields scf = sc.getScorecardFields();
-        return new MLScorecardData(sc.getId(), scf.getAge(), scf.getSex(), scf.getJob(), scf.getHousing(), scf.getCreditAmount(),
-                scf.getDuration(), scf.getPurpose(), risk, accuracy, null, null, null, null);
-    }
 }

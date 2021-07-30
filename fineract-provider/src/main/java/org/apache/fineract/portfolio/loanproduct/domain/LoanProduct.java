@@ -188,7 +188,7 @@ public class LoanProduct extends AbstractPersistableCustom {
     private boolean isEqualAmortization = false;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "loan_product_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "product_loan_id", referencedColumnName = "id", nullable = false)
     private List<LoanProductScorecardFeature> scorecardFeatures;
 
     public static LoanProduct assembleFromJson(final Fund fund, final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy,
@@ -1477,5 +1477,9 @@ public class LoanProduct extends AbstractPersistableCustom {
             this.scorecardFeatures = newScorecardFeatures;
         }
         return updated;
+    }
+
+    public List<LoanProductScorecardFeature> getScorecardFeatures() {
+        return scorecardFeatures;
     }
 }

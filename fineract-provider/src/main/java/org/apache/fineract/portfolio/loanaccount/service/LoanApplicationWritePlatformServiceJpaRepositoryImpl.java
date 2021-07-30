@@ -527,6 +527,10 @@ public class LoanApplicationWritePlatformServiceJpaRepositoryImpl implements Loa
                 }
             }
 
+            if (newLoanApplication.hasScorecard()) {
+                this.scorecardWritePlatformService.assessCreditRisk(newLoanApplication);
+            }
+
             // Save linked account information
             SavingsAccount savingsAccount;
             AccountAssociations accountAssociations;

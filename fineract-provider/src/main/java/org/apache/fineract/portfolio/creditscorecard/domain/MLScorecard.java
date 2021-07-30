@@ -18,6 +18,7 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.domain;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -25,22 +26,19 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import org.apache.fineract.cn.sekhmet.models.PredictionResponse;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 @Entity
-@Component
 @Table(name = "m_ml_scorecard")
 public class MLScorecard extends AbstractPersistableCustom {
-
-    private static final Logger LOG = LoggerFactory.getLogger(MLScorecard.class);
 
     @Embedded
     private MLScorecardFields scorecardFields;
 
     @Column(name = "predicted_risk")
     private String predictedRisk;
+
+    @Column(name = "accuracy")
+    private BigDecimal accuracy;
 
     @Column(name = "actual_risk")
     private String actualRisk;
@@ -77,6 +75,10 @@ public class MLScorecard extends AbstractPersistableCustom {
         this.scorecardFields = scorecardFields;
     }
 
+    public BigDecimal getAccuracy() {
+        return accuracy;
+    }
+
     public String getPredictedRisk() {
         return predictedRisk;
     }
@@ -102,6 +104,7 @@ public class MLScorecard extends AbstractPersistableCustom {
     }
 
     public MLScorecard setPredictionResponse(final PredictionResponse response) {
+        this.accuracy = BigDecimal.valueOf(response.getProbability());
         this.predictedRisk = response.getLabel();
         this.predictionRequestId = response.getRequestId();
         return this;

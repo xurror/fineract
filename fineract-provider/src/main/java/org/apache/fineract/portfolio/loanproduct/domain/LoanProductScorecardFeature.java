@@ -18,12 +18,11 @@
  */
 package org.apache.fineract.portfolio.loanproduct.domain;
 
-import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -32,119 +31,48 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
-import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureConfiguration;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteria;
 
 @Entity
-@Table(name = "m_loan_product_scorecard_feature")
+@Table(name = "m_product_loan_scorecard_feature")
 public class LoanProductScorecardFeature extends AbstractPersistableCustom {
-
-    @Column(name = "weightage", scale = 6, precision = 5, nullable = false)
-    private BigDecimal weightage;
-
-    @Column(name = "green_min", nullable = false)
-    private Integer greenMin;
-
-    @Column(name = "green_max", nullable = false)
-    private Integer greenMax;
-
-    @Column(name = "amber_min", nullable = false)
-    private Integer amberMin;
-
-    @Column(name = "amber_max", nullable = false)
-    private Integer amberMax;
-
-    @Column(name = "red_min", nullable = false)
-    private Integer redMin;
-
-    @Column(name = "red_max", nullable = false)
-    private Integer redMax;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "scorecard_feature_id", referencedColumnName = "id", nullable = false)
     private CreditScorecardFeature scorecardFeature;
 
+    @Embedded
+    private FeatureConfiguration configuration;
+
     @OneToMany(cascade = { CascadeType.PERSIST, CascadeType.DETACH }, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "loan_product_scorecard_feature_id", referencedColumnName = "id")
-    private List<ScorecardFeatureCriteria> featureCriteria;
+    @JoinColumn(name = "product_loan_scorecard_feature_id", referencedColumnName = "id")
+    private List<FeatureCriteria> featureCriteria;
 
     public LoanProductScorecardFeature() {
         //
     }
 
-    public LoanProductScorecardFeature(CreditScorecardFeature scorecardFeature, BigDecimal weightage, Integer greenMin, Integer greenMax,
-            Integer amberMin, Integer amberMax, Integer redMin, Integer redMax) {
+    public LoanProductScorecardFeature(final CreditScorecardFeature scorecardFeature, final BigDecimal weightage, final Integer greenMin,
+            final Integer greenMax, final Integer amberMin, final Integer amberMax, final Integer redMin, final Integer redMax) {
         this.scorecardFeature = scorecardFeature;
-        this.weightage = weightage;
-        this.greenMin = greenMin;
-        this.greenMax = greenMax;
-        this.amberMin = amberMin;
-        this.amberMax = amberMax;
-        this.redMin = redMin;
-        this.redMax = redMax;
+        this.configuration = FeatureConfiguration.from(weightage, greenMin, greenMax, amberMin, amberMax, redMin, redMax);
     }
 
-    public LoanProductScorecardFeature(CreditScorecardFeature scorecardFeature, BigDecimal weightage, Integer greenMin, Integer greenMax,
-            Integer amberMin, Integer amberMax, Integer redMin, Integer redMax, List<ScorecardFeatureCriteria> featureCriteria) {
-        this.scorecardFeature = scorecardFeature;
-        this.weightage = weightage;
-        this.greenMin = greenMin;
-        this.greenMax = greenMax;
-        this.amberMin = amberMin;
-        this.amberMax = amberMax;
-        this.redMin = redMin;
-        this.redMax = redMax;
-        this.featureCriteria = featureCriteria;
-    }
-
-    public BigDecimal getWeightage() {
-        return weightage;
-    }
-
-    public Integer getGreenMin() {
-        return greenMin;
-    }
-
-    public Integer getGreenMax() {
-        return greenMax;
-    }
-
-    public Integer getAmberMin() {
-        return amberMin;
-    }
-
-    public Integer getAmberMax() {
-        return amberMax;
-    }
-
-    public Integer getRedMin() {
-        return redMin;
-    }
-
-    public Integer getRedMax() {
-        return redMax;
+    public FeatureConfiguration getFeatureConfiguration() {
+        return configuration;
     }
 
     public CreditScorecardFeature getScorecardFeature() {
         return scorecardFeature;
     }
 
-    public List<ScorecardFeatureCriteria> getFeatureCriteria() {
+    public List<FeatureCriteria> getFeatureCriteria() {
         return featureCriteria;
     }
 
-    public void setFeatureCriteria(List<ScorecardFeatureCriteria> featureCriteria) {
+    public void setFeatureCriteria(List<FeatureCriteria> featureCriteria) {
         this.featureCriteria = featureCriteria;
-    }
-
-    public LoanProductScorecardFeature update(final JsonObject jsonObject) {
-        this.weightage = jsonObject.get("weightage").getAsBigDecimal();
-        this.greenMin = jsonObject.get("greenMin").getAsInt();
-        this.greenMax = jsonObject.get("greenMax").getAsInt();
-        this.amberMin = jsonObject.get("amberMin").getAsInt();
-        this.amberMax = jsonObject.get("amberMax").getAsInt();
-        this.redMin = jsonObject.get("redMin").getAsInt();
-        this.redMax = jsonObject.get("redMax").getAsInt();
-        return this;
     }
 
     @Override
@@ -152,22 +80,12 @@ public class LoanProductScorecardFeature extends AbstractPersistableCustom {
         if (this == o) return true;
         if (!(o instanceof LoanProductScorecardFeature)) return false;
         LoanProductScorecardFeature that = (LoanProductScorecardFeature) o;
-        return Objects.equals(weightage, that.weightage) && Objects.equals(greenMin, that.greenMin)
-                && Objects.equals(greenMax, that.greenMax) && Objects.equals(amberMin, that.amberMin)
-                && Objects.equals(amberMax, that.amberMax) && Objects.equals(redMin, that.redMin) && Objects.equals(redMax, that.redMax)
-                && Objects.equals(scorecardFeature, that.scorecardFeature) && Objects.equals(featureCriteria, that.featureCriteria);
+        return Objects.equals(configuration, that.configuration) && Objects.equals(scorecardFeature, that.scorecardFeature)
+                && Objects.equals(featureCriteria, that.featureCriteria);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(weightage, greenMin, greenMax, amberMin, amberMax, redMin, redMax, scorecardFeature, featureCriteria);
+        return Objects.hash(configuration, scorecardFeature, featureCriteria);
     }
-
-    @Override
-    public String toString() {
-        return "LoanProductScorecardFeature{" + "weightage=" + weightage + ", greenMin=" + greenMin + ", greenMax=" + greenMax
-                + ", amberMin=" + amberMin + ", amberMax=" + amberMax + ", redMin=" + redMin + ", redMax=" + redMax + ", scorecardFeature="
-                + scorecardFeature + ", featureCriteria=" + featureCriteria + '}';
-    }
-
 }

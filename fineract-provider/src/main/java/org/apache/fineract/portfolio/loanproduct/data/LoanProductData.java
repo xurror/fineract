@@ -276,6 +276,7 @@ public class LoanProductData implements Serializable {
         final boolean isRatesEnabled = false;
 
         final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
+
         return new LoanProductData(id, name, shortName, description, currency, principal, minPrincipal, maxPrincipal, tolerance,
                 numberOfRepayments, minNumberOfRepayments, maxNumberOfRepayments, repaymentEvery, interestRatePerPeriod,
                 minInterestRatePerPeriod, maxInterestRatePerPeriod, annualInterestRate, repaymentFrequencyType, interestRateFrequencyType,

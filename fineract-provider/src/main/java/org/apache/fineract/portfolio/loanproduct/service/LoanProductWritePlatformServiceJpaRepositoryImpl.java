@@ -44,7 +44,7 @@ import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.B
 import org.apache.fineract.portfolio.common.service.BusinessEventNotifierService;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeatureRepositoryWrapper;
-import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteria;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteria;
 import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteriaRepository;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRate;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRateRepositoryWrapper;
@@ -344,6 +344,9 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
 
         final List<LoanProductScorecardFeature> loanProductFeatures = new ArrayList<>();
 
+        // JsonCommand incentivesCommand = JsonCommand.fromExistingCommand(command, incentiveElement);
+        // chartSlab.slabFields().validateChartSlabPlatformRules(chartSlabsCommand, baseDataValidator, locale);
+
         if (command.parameterExists("scorecardFeatures")) {
             final JsonArray featuresArray = command.arrayOfParameterNamed("scorecardFeatures");
             if (featuresArray != null) {
@@ -361,7 +364,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                         final Integer redMin = jsonObject.get("redMin").getAsInt();
                         final Integer redMax = jsonObject.get("redMax").getAsInt();
 
-                        final List<ScorecardFeatureCriteria> criteria = this
+                        final List<FeatureCriteria> criteria = this
                                 .assembleListOfProductScoringFeatureCriteriaScores(jsonObject.get("criteriaScores").getAsJsonArray());
 
                         final CreditScorecardFeature feature = this.scorecardFeatureRepository.findOneWithNotFoundDetection(id);
@@ -380,9 +383,9 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
         return loanProductFeatures;
     }
 
-    private List<ScorecardFeatureCriteria> assembleListOfProductScoringFeatureCriteriaScores(final JsonArray jsonArray) {
+    private List<FeatureCriteria> assembleListOfProductScoringFeatureCriteriaScores(final JsonArray jsonArray) {
 
-        final List<ScorecardFeatureCriteria> featureCriteria = new ArrayList<>();
+        final List<FeatureCriteria> featureCriteria = new ArrayList<>();
 
         if (jsonArray != null) {
             for (int i = 0; i < jsonArray.size(); i++) {
@@ -391,9 +394,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                 final BigDecimal score = jsonObject.get("score").getAsBigDecimal();
                 final String scoreCriteria = jsonObject.get("criteria").getAsString();
 
-                featureCriteria.add(new ScorecardFeatureCriteria(scoreCriteria, score));
-
-                System.out.println(scoreCriteria);
+                featureCriteria.add(new FeatureCriteria(scoreCriteria, score));
             }
         }
 

@@ -41,6 +41,7 @@ import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterExc
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.portfolio.accountdetails.domain.AccountType;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
+import org.apache.fineract.portfolio.creditscorecard.serialization.CreditScorecardApiJsonHelper;
 import org.apache.fineract.portfolio.loanaccount.api.LoanApiConstants;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanCharge;
@@ -89,15 +90,16 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             LoanApiConstants.datatables, LoanApiConstants.isEqualAmortizationParam, LoanProductConstants.RATES_PARAM_NAME,
             LoanApiConstants.applicationId, // glim specific
             LoanApiConstants.lastApplication, LoanApiConstants.daysInYearTypeParameterName,
-            LoanApiConstants.recalculationCompoundingFrequencyDate, LoanApiConstants.scoringMethod, LoanApiConstants.scoringData)); // glim
-                                                                                                                                    // specific
+            LoanApiConstants.recalculationCompoundingFrequencyDate, LoanApiConstants.scorecard));
 
     private final FromJsonHelper fromApiJsonHelper;
     private final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper;
+    private final CreditScorecardApiJsonHelper scorecardApiJsonHelper;
 
     @Autowired
     public LoanApplicationCommandFromApiJsonHelper(final FromJsonHelper fromApiJsonHelper,
-            final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper) {
+            final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper, final CreditScorecardApiJsonHelper scorecardApiJsonHelper) {
+        this.scorecardApiJsonHelper = scorecardApiJsonHelper;
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.apiJsonHelper = apiJsonHelper;
     }
@@ -414,6 +416,12 @@ public final class LoanApplicationCommandFromApiJsonHelper {
                     this.fromApiJsonHelper.extractLocalDateNamed("dueDate", loanChargeElement, dateFormat, locale);
                 }
             }
+        }
+
+        // Scorecard
+        final String scorecardParameterName = "scorecard";
+        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scorecardParameterName, element)) {
+            this.scorecardApiJsonHelper.validateScorecardJson(element);
         }
 
         // collateral
@@ -814,71 +822,11 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             baseDataValidator.reset().parameter(linkAccountIdParameterName).value(linkAccountId).ignoreIfNull().longGreaterThanZero();
         }
 
-        // Credit Scorecard
-        final String scoringMethodParameterName = "scoringMethod";
-        String method = null;
-        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scoringMethodParameterName, element)) {
+        // Scorecard
+        final String scorecardParameterName = "scorecard";
+        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scorecardParameterName, element)) {
             atLeastOneParameterPassedForUpdate = true;
-            final JsonObject topLevelJsonElement = element.getAsJsonObject();
-
-            final JsonObject scoringMethodElement = topLevelJsonElement.getAsJsonObject(scoringMethodParameterName);
-
-            if (this.fromApiJsonHelper.parameterExists("method", scoringMethodElement)) {
-                method = this.fromApiJsonHelper.extractStringNamed("method", scoringMethodElement);
-                baseDataValidator.reset().parameter(externalIdParameterName).value(method).ignoreIfNull().notExceedingLengthOf(100);
-            }
-
-            if (this.fromApiJsonHelper.parameterExists("model", scoringMethodElement)) {
-                final String model = this.fromApiJsonHelper.extractStringNamed("model", scoringMethodElement);
-                baseDataValidator.reset().parameter(externalIdParameterName).value(model).ignoreIfNull().notExceedingLengthOf(100);
-            }
-        }
-
-        if (method != null) {
-            final String scoringDataParameterName = "scoringMethod";
-            if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scoringDataParameterName, element)) {
-
-                final JsonObject topLevelJsonElement = element.getAsJsonObject();
-
-                if (topLevelJsonElement.get(scoringDataParameterName).isJsonArray()
-                        && (method.equals("ml") || method.equals("statistical"))) {
-                    final Type arrayObjectParameterTypeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
-                    final Set<String> supportedParameters = new HashSet<>(
-                            Arrays.asList("age", "sex", "job", "housing", "creditAmount", "duration", "purpose"));
-
-                    final JsonArray array = topLevelJsonElement.get(scoringDataParameterName).getAsJsonArray();
-                    for (int i = 1; i <= array.size(); i++) {
-
-                        final JsonObject scoringDataElement = array.get(i - 1).getAsJsonObject();
-                        final String arrayObjectJson = this.fromApiJsonHelper.toJson(scoringDataElement);
-                        this.fromApiJsonHelper.checkForUnsupportedParameters(arrayObjectParameterTypeOfMap, arrayObjectJson,
-                                supportedParameters);
-
-                        final Integer age = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("age", scoringDataElement);
-                        baseDataValidator.reset().parameter("age").value(age).notNull().integerGreaterThanZero();
-
-                        final String sex = this.fromApiJsonHelper.extractStringNamed("sex", scoringDataElement);
-                        baseDataValidator.reset().parameter("sex").value(sex).notBlank();
-
-                        final String job = this.fromApiJsonHelper.extractStringNamed("job", scoringDataElement);
-                        baseDataValidator.reset().parameter("job").value(job).notBlank();
-
-                        final String housing = this.fromApiJsonHelper.extractStringNamed("housing", scoringDataElement);
-                        baseDataValidator.reset().parameter("housing").value(housing).notBlank();
-
-                        final BigDecimal creditAmount = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("creditAmount",
-                                scoringDataElement);
-                        baseDataValidator.reset().parameter("creditAmount").value(creditAmount).notNull().positiveAmount();
-
-                        final Integer duration = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("duration", scoringDataElement);
-                        baseDataValidator.reset().parameter("duration").value(duration).notNull().integerGreaterThanZero();
-
-                        final String purpose = this.fromApiJsonHelper.extractStringNamed("purpose", scoringDataElement);
-                        baseDataValidator.reset().parameter("purpose").value(purpose).notBlank();
-
-                    }
-                }
-            }
+            this.scorecardApiJsonHelper.validateScorecardJson(element);
         }
 
         // charges

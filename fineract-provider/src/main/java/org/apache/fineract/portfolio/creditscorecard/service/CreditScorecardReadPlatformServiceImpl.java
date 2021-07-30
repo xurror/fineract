@@ -21,19 +21,16 @@ package org.apache.fineract.portfolio.creditscorecard.service;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
-import org.apache.fineract.infrastructure.codes.data.CodeValueData;
-import org.apache.fineract.infrastructure.codes.service.CodeValueReadPlatformService;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.service.RoutingDataSource;
-import org.apache.fineract.portfolio.client.domain.ClientRepositoryWrapper;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
 import org.apache.fineract.portfolio.creditscorecard.data.MLScorecardData;
+import org.apache.fineract.portfolio.creditscorecard.data.RuleBasedScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.ScorecardFeatureCriteriaData;
-import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeatureRepository;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanScorecardFeatureRepository;
-import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeatureRepository;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -43,26 +40,14 @@ import org.springframework.stereotype.Service;
 public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardReadPlatformService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final ClientRepositoryWrapper clientRepository;
-    private final CodeValueReadPlatformService codeValueReadPlatformService;
-    private final CreditScorecardFeatureRepository creditScorecardFeatureRepository;
-    private final LoanScorecardFeatureRepository loanScorecardFeatureRepository;
-    private final LoanProductScorecardFeatureRepository loanProductScorecardFeatureRepository;
+    private final CreditScorecardRepository scorecardRepository;
     private final CreditScorecardFeatureDropdownReadPlatformService creditScorecardFeatureDropdownReadPlatformService;
 
     @Autowired
-    public CreditScorecardReadPlatformServiceImpl(final RoutingDataSource dataSource,
-            final CreditScorecardFeatureRepository creditScorecardFeatureRepository,
-            final CreditScorecardFeatureDropdownReadPlatformService creditScorecardFeatureDropdownReadPlatformService,
-            final LoanScorecardFeatureRepository loanScorecardFeatureRepository,
-            final LoanProductScorecardFeatureRepository loanProductScorecardFeatureRepository,
-            final ClientRepositoryWrapper clientRepository, final CodeValueReadPlatformService codeValueReadPlatformService) {
+    public CreditScorecardReadPlatformServiceImpl(final RoutingDataSource dataSource, final CreditScorecardRepository scorecardRepository,
+            final CreditScorecardFeatureDropdownReadPlatformService creditScorecardFeatureDropdownReadPlatformService) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.clientRepository = clientRepository;
-        this.codeValueReadPlatformService = codeValueReadPlatformService;
-        this.loanScorecardFeatureRepository = loanScorecardFeatureRepository;
-        this.loanProductScorecardFeatureRepository = loanProductScorecardFeatureRepository;
-        this.creditScorecardFeatureRepository = creditScorecardFeatureRepository;
+        this.scorecardRepository = scorecardRepository;
         this.creditScorecardFeatureDropdownReadPlatformService = creditScorecardFeatureDropdownReadPlatformService;
     }
 
@@ -81,7 +66,7 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
         final ScorecardFeatureMapper rm = new ScorecardFeatureMapper();
 
         final String sql = "SELECT " + rm.featureSchema()
-                + " WHERE scf.is_deleted=false AND scf.is_active=true AND lpscf.loan_product_id=? ";
+                + " WHERE scf.is_deleted=false AND scf.is_active=true AND lpscf.product_loan_id=? ";
 
         final Collection<CreditScorecardFeatureData> scorecardFeatures = this.jdbcTemplate.query(sql, rm, new Object[] { productId });
 
@@ -93,7 +78,7 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
     }
 
     @Override
-    public MLScorecardData retrieveMLScorecardTemplate(Long clientId) {
+    public CreditScorecardData retrieveScorecardTemplate(Long clientId) {
         // final Client client = this.clientRepository.findOneWithNotFoundDetection(clientId);
         //
         // final LocalDate dateOfBirth = LocalDate.ofInstant(client.dateOfBirth().toInstant(),
@@ -118,16 +103,61 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
         // purpose = loan.getLoanPurpose().label();
         // }
 
-        final Collection<CodeValueData> genderOptions = new ArrayList<>(
-                this.codeValueReadPlatformService.retrieveCodeValuesByCode("Gender"));
+        // return MLScorecardData.template(null, null);
+        return null;
+    }
 
-        return MLScorecardData.template(null, null, genderOptions);
+    @Override
+    public CreditScorecardData retrieveCreditScorecard(Long scorecardId) {
+        // TODO: Create Proper Exception
+        final CreditScorecard scorecard = this.scorecardRepository.findById(scorecardId).orElse(null);
+
+        if (scorecard == null) {
+            return null;
+        }
+
+        CreditScorecardData scorecardData = null;
+
+        final String method = scorecard.getScoringMethod();
+        switch (method) {
+            case "ml":
+                final MLScorecardData mlScorecardData = MLScorecardData.instance(scorecard.getMlScorecard());
+                scorecardData = CreditScorecardData.mlInstance(scorecard.getId(), scorecard.getScoringMethod(), scorecard.getScoringModel(),
+                        mlScorecardData);
+            break;
+
+            case "stat":
+                // TODO: Implement Stat Algo
+                scorecardData = null;
+            break;
+
+            case "ruleBased":
+                final RuleBasedScorecardData ruleBasedScorecardData = RuleBasedScorecardData.instance(scorecard.getRuleBasedScorecard());
+                scorecardData = CreditScorecardData.ruleBasedInstance(scorecard.getId(), scorecard.getScoringMethod(),
+                        scorecard.getScoringModel(), ruleBasedScorecardData);
+            break;
+
+            default:
+            break;
+        }
+
+        return scorecardData;
+    }
+
+    @Override
+    public CreditScorecardData LoanScorecardTemplate() {
+        return CreditScorecardData.loanTemplate();
+    }
+
+    @Override
+    public CreditScorecardData LoanScorecardTemplate(CreditScorecardData scorecard) {
+        return CreditScorecardData.loanScorecardWithTemplate(scorecard);
     }
 
     private Collection<ScorecardFeatureCriteriaData> retrieveFeatureCriteria(Long featureId) {
         final FeatureCriteriaMapper rm = new FeatureCriteriaMapper();
 
-        final String sql = "SELECT " + rm.featureCriteriaSchema() + " WHERE crit.loan_product_scorecard_feature_id=?";
+        final String sql = "SELECT " + rm.featureCriteriaSchema() + " WHERE crit.product_loan_scorecard_feature_id=?";
 
         return this.jdbcTemplate.query(sql, rm, new Object[] { featureId });
     }
@@ -135,7 +165,7 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
     private static final class FeatureCriteriaMapper implements RowMapper<ScorecardFeatureCriteriaData> {
 
         public String featureCriteriaSchema() {
-            return "crit.id as id, crit.criteria as criteria, crit.score as score " + "FROM m_credit_scorecard_feature_criteria crit";
+            return "crit.id as id, crit.criteria as criteria, crit.score as score " + "FROM m_scorecard_feature_criteria crit";
         }
 
         @Override
@@ -157,7 +187,7 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
                     + "lpscf.green_max as greenMax, lpscf.amber_min as amberMin, lpscf.amber_max as amberMax, "
                     + "lpscf.red_min as redMin, lpscf.red_max as redMax " +
 
-                    "FROM m_loan_product_scorecard_feature lpscf "
+                    "FROM m_product_loan_scorecard_feature lpscf "
                     + "JOIN m_credit_scorecard_feature scf ON scf.id = lpscf.scorecard_feature_id ";
         }
 

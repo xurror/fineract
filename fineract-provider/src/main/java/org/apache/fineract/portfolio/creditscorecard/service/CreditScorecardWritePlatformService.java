@@ -20,7 +20,8 @@ package org.apache.fineract.portfolio.creditscorecard.service;
 
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
-import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
+import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 
 public interface CreditScorecardWritePlatformService {
 
@@ -30,6 +31,6 @@ public interface CreditScorecardWritePlatformService {
 
     CommandProcessingResult updateScoringFeature(Long entityId, JsonCommand command);
 
-    CreditScorecardData assessCreditRisk(Long loanId);
+    CreditScorecard assessCreditRisk(Loan loan);
 
 }
