@@ -78,38 +78,7 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
     }
 
     @Override
-    public CreditScorecardData retrieveScorecardTemplate(Long clientId) {
-        // final Client client = this.clientRepository.findOneWithNotFoundDetection(clientId);
-        //
-        // final LocalDate dateOfBirth = LocalDate.ofInstant(client.dateOfBirth().toInstant(),
-        // DateUtils.getDateTimeZoneOfTenant());
-        //
-        // final int age = Period.between(dateOfBirth, LocalDate.now(DateUtils.getDateTimeZoneOfTenant())).getYears();
-        //
-        // String gender = null;
-        // if (client.gender() != null) {
-        // gender = client.gender().label();
-        // }
-
-        // final LocalDate expectedDisbursementDate = loan.getExpectedDisbursementDate().withDayOfMonth(1);
-        // final LocalDate expectedMaturityDate = loan.getExpectedMaturityDate().withDayOfMonth(1);
-        //
-        // final Period durationPeriod = Period.between(expectedDisbursementDate, expectedMaturityDate);
-        //
-        // final int duration = (durationPeriod.getYears() * 12) + durationPeriod.getMonths();
-        //
-        // String purpose = null;
-        // if (loan.getLoanPurpose() != null) {
-        // purpose = loan.getLoanPurpose().label();
-        // }
-
-        // return MLScorecardData.template(null, null);
-        return null;
-    }
-
-    @Override
     public CreditScorecardData retrieveCreditScorecard(Long scorecardId) {
-        // TODO: Create Proper Exception
         final CreditScorecard scorecard = this.scorecardRepository.findById(scorecardId).orElse(null);
 
         if (scorecard == null) {

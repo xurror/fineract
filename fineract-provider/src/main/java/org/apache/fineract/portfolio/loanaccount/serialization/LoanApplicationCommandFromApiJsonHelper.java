@@ -41,6 +41,7 @@ import org.apache.fineract.infrastructure.core.exception.UnsupportedParameterExc
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.portfolio.accountdetails.domain.AccountType;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
+import org.apache.fineract.portfolio.creditscorecard.serialization.CreditScorecardApiJsonHelper;
 import org.apache.fineract.portfolio.loanaccount.api.LoanApiConstants;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanCharge;
@@ -88,14 +89,17 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             LoanApiConstants.createStandingInstructionAtDisbursementParameterName, LoanApiConstants.isTopup, LoanApiConstants.loanIdToClose,
             LoanApiConstants.datatables, LoanApiConstants.isEqualAmortizationParam, LoanProductConstants.RATES_PARAM_NAME,
             LoanApiConstants.applicationId, // glim specific
-            LoanApiConstants.lastApplication, LoanApiConstants.daysInYearTypeParameterName)); // glim specific
+            LoanApiConstants.lastApplication, LoanApiConstants.daysInYearTypeParameterName,
+            LoanApiConstants.recalculationCompoundingFrequencyDate, LoanApiConstants.scorecard));
 
     private final FromJsonHelper fromApiJsonHelper;
     private final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper;
+    private final CreditScorecardApiJsonHelper scorecardApiJsonHelper;
 
     @Autowired
     public LoanApplicationCommandFromApiJsonHelper(final FromJsonHelper fromApiJsonHelper,
-            final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper) {
+            final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper, final CreditScorecardApiJsonHelper scorecardApiJsonHelper) {
+        this.scorecardApiJsonHelper = scorecardApiJsonHelper;
         this.fromApiJsonHelper = fromApiJsonHelper;
         this.apiJsonHelper = apiJsonHelper;
     }
@@ -412,6 +416,12 @@ public final class LoanApplicationCommandFromApiJsonHelper {
                     this.fromApiJsonHelper.extractLocalDateNamed("dueDate", loanChargeElement, dateFormat, locale);
                 }
             }
+        }
+
+        // Scorecard
+        final String scorecardParameterName = "scorecard";
+        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scorecardParameterName, element)) {
+            this.scorecardApiJsonHelper.validateScorecardJson(element);
         }
 
         // collateral
@@ -810,6 +820,13 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             atLeastOneParameterPassedForUpdate = true;
             final Long linkAccountId = this.fromApiJsonHelper.extractLongNamed(linkAccountIdParameterName, element);
             baseDataValidator.reset().parameter(linkAccountIdParameterName).value(linkAccountId).ignoreIfNull().longGreaterThanZero();
+        }
+
+        // Scorecard
+        final String scorecardParameterName = "scorecard";
+        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(scorecardParameterName, element)) {
+            atLeastOneParameterPassedForUpdate = true;
+            this.scorecardApiJsonHelper.validateScorecardJson(element);
         }
 
         // charges

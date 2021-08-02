@@ -28,8 +28,6 @@ public interface CreditScorecardReadPlatformService {
 
     Collection<CreditScorecardFeatureData> retrieveLoanProductFeatures(Long productId);
 
-    CreditScorecardData retrieveScorecardTemplate(Long clientId);
-
     CreditScorecardData retrieveCreditScorecard(Long scorecardId);
 
     CreditScorecardData loanScorecardTemplate();
