@@ -36,6 +36,8 @@ import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.charge.data.ChargeData;
 import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.common.service.CommonEnumerations;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
+import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardReadPlatformService;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductBorrowerCycleVariationData;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductData;
 import org.apache.fineract.portfolio.loanproduct.data.LoanProductGuaranteeData;
@@ -59,16 +61,19 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
     private final ChargeReadPlatformService chargeReadPlatformService;
     private final RateReadService rateReadService;
     private final FineractEntityAccessUtil fineractEntityAccessUtil;
+    private final CreditScorecardReadPlatformService scorecardReadPlatformService;
 
     @Autowired
     public LoanProductReadPlatformServiceImpl(final PlatformSecurityContext context,
             final ChargeReadPlatformService chargeReadPlatformService, final RoutingDataSource dataSource,
-            final FineractEntityAccessUtil fineractEntityAccessUtil, final RateReadService rateReadService) {
+            final FineractEntityAccessUtil fineractEntityAccessUtil, final RateReadService rateReadService,
+            final CreditScorecardReadPlatformService scorecardReadPlatformService) {
         this.context = context;
         this.chargeReadPlatformService = chargeReadPlatformService;
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.fineractEntityAccessUtil = fineractEntityAccessUtil;
         this.rateReadService = rateReadService;
+        this.scorecardReadPlatformService = scorecardReadPlatformService;
     }
 
     @Override
@@ -79,7 +84,11 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
             final Collection<RateData> rates = this.rateReadService.retrieveProductLoanRates(loanProductId);
             final Collection<LoanProductBorrowerCycleVariationData> borrowerCycleVariationDatas = retrieveLoanProductBorrowerCycleVariations(
                     loanProductId);
-            final LoanProductMapper rm = new LoanProductMapper(charges, borrowerCycleVariationDatas, rates);
+
+            final Collection<CreditScorecardFeatureData> scorecardFeatures = this.scorecardReadPlatformService
+                    .retrieveLoanProductFeatures(loanProductId);
+
+            final LoanProductMapper rm = new LoanProductMapper(charges, borrowerCycleVariationDatas, rates, scorecardFeatures);
             final String sql = "select " + rm.loanProductSchema() + " where lp.id = ?";
 
             return this.jdbcTemplate.queryForObject(sql, rm, new Object[] { loanProductId });
@@ -101,7 +110,7 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
 
         this.context.authenticatedUser();
 
-        final LoanProductMapper rm = new LoanProductMapper(null, null, null);
+        final LoanProductMapper rm = new LoanProductMapper(null, null, null, null);
 
         String sql = "select " + rm.loanProductSchema();
 
@@ -180,11 +189,15 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
 
         private final Collection<RateData> rates;
 
+        private final Collection<CreditScorecardFeatureData> scorecardFeatures;
+
         LoanProductMapper(final Collection<ChargeData> charges,
-                final Collection<LoanProductBorrowerCycleVariationData> borrowerCycleVariationDatas, final Collection<RateData> rates) {
+                final Collection<LoanProductBorrowerCycleVariationData> borrowerCycleVariationDatas, final Collection<RateData> rates,
+                final Collection<CreditScorecardFeatureData> scorecardFeatures) {
             this.charges = charges;
             this.borrowerCycleVariationDatas = borrowerCycleVariationDatas;
             this.rates = rates;
+            this.scorecardFeatures = scorecardFeatures;
         }
 
         public String loanProductSchema() {
@@ -471,7 +484,7 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
                     floatingRateName, interestRateDifferential, minDifferentialLendingRate, defaultDifferentialLendingRate,
                     maxDifferentialLendingRate, isFloatingInterestRateCalculationAllowed, isVariableIntallmentsAllowed, minimumGap,
                     maximumGap, syncExpectedWithDisbursementDate, canUseForTopup, isEqualAmortization, rateOptions, this.rates,
-                    isRatesEnabled);
+                    isRatesEnabled, this.scorecardFeatures);
         }
     }
 
@@ -541,7 +554,7 @@ public class LoanProductReadPlatformServiceImpl implements LoanProductReadPlatfo
     public Collection<LoanProductData> retrieveAllLoanProductsForCurrency(String currencyCode) {
         this.context.authenticatedUser();
 
-        final LoanProductMapper rm = new LoanProductMapper(null, null, null);
+        final LoanProductMapper rm = new LoanProductMapper(null, null, null, null);
 
         String sql = "select " + rm.loanProductSchema() + " where lp.currency_code= ? ";
 
