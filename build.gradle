@@ -83,7 +83,7 @@ allprojects  {
 
     repositories {
         flatDir {
-            dirs "$rootDir/libs"
+            dirs "$rootDir/fineract-credit-scorecard"
         }
         jcenter()
     }
@@ -132,7 +132,7 @@ allprojects  {
             dependency 'jakarta.xml.bind:jakarta.xml.bind-api:2.3.3'
             dependency 'org.glassfish.jaxb:jaxb-runtime:2.3.5'
             dependency 'jakarta.validation:jakarta.validation-api:3.0.0'
-            dependency 'org.apache.activemq:activemq-broker:5.16.3'
+            dependency 'org.apache.activemq:activemq-broker:5.16.2'
             dependency 'org.apache.bval:org.apache.bval.bundle:2.0.5'
 
             dependency 'io.github.classgraph:classgraph:4.8.110'
@@ -176,8 +176,11 @@ allprojects  {
             dependency "com.google.code.findbugs:jsr305:3.0.2"
             dependency "commons-codec:commons-codec:1.15"
 
-            dependency "org.apache.fineract.cn:sekhmet-java-client:1.0.0"
+            // Fineract Credit Scorecard Dependencies. see https://github.com/apache/fineract-credit-scorecard
+            dependency "org.apache.fineract:credit-scorecard-java-client:0.1.0-SNAPSHOT"
             dependency "io.gsonfire:gson-fire:1.8.0"
+            dependency "com.squareup.okhttp3:logging-interceptor:4.9.1"
+            dependency "com.squareup.okhttp3:okhttp:4.9.1"
 
             dependency ('org.flywaydb:flyway-core:7.0.0') {
                 // https://issues.apache.org/jira/browse/FINERACT-1172

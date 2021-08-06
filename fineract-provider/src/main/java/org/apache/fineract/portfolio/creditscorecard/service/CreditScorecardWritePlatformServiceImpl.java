@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.Map;
 import javax.persistence.PersistenceException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.fineract.cn.sekhmet.ApiClient;
-import org.apache.fineract.cn.sekhmet.ApiException;
-import org.apache.fineract.cn.sekhmet.models.PredictionResponse;
-import org.apache.fineract.cn.sekhmet.services.AlgorithmsApi;
+import org.apache.fineract.credit.scorecard.ApiClient;
+import org.apache.fineract.credit.scorecard.ApiException;
+import org.apache.fineract.credit.scorecard.models.PredictionResponse;
+import org.apache.fineract.credit.scorecard.services.AlgorithmsApi;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
@@ -78,13 +78,14 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
     private final MLScorecardRepository mlScorecardRepository;
     private final CreditScorecardRepository scorecardRepository;
     private final RuleBasedScorecardRepository ruleBasedScorecardRepository;
+    private final ApiClient creditScorecardClient;
 
     @Autowired
     public CreditScorecardWritePlatformServiceImpl(final PlatformSecurityContext context,
             final CreditScorecardApiJsonHelper fromApiJsonDeserializer, final LoanRepository loanRepository,
             final LoanProductRepository loanProductRepository, final CreditScorecardFeatureRepository featureRepository,
             final MLScorecardRepository mlScorecardRepository, final CreditScorecardRepository scorecardRepository,
-            final RuleBasedScorecardRepository ruleBasedScorecardRepository) {
+            final RuleBasedScorecardRepository ruleBasedScorecardRepository, final ApiClient creditScorecardClient) {
         this.context = context;
         this.fromApiJsonDeserializer = fromApiJsonDeserializer;
         this.loanRepository = loanRepository;
@@ -93,6 +94,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
         this.scorecardRepository = scorecardRepository;
         this.mlScorecardRepository = mlScorecardRepository;
         this.ruleBasedScorecardRepository = ruleBasedScorecardRepository;
+        this.creditScorecardClient = creditScorecardClient;
     }
 
     @Transactional
@@ -153,6 +155,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
         if (scorecard != null) {
             final String scoringMethod = scorecard.getScoringMethod();
+            final String scoringModel = scorecard.getScoringModel();
 
             if (scoringMethod.equalsIgnoreCase("ruleBased")) {
 
@@ -166,7 +169,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                     final FeatureConfiguration featureConfig = lpFeature.getFeatureConfiguration();
 
-                    final EnumOptionData valueType = lpFeature.getScorecardFeature().getValueType();
+                    final EnumOptionData dataType = lpFeature.getScorecardFeature().getDataType();
 
                     final List<FeatureCriteria> featureCriteriaList = lpFeature.getFeatureCriteria();
 
@@ -176,7 +179,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                         if (value != null) {
 
-                            if (valueType.getValue().equalsIgnoreCase("nominal") || valueType.getValue().equalsIgnoreCase("binary")) {
+                            if (dataType.getValue().equalsIgnoreCase("string")) {
 
                                 if (value.equalsIgnoreCase(featureCriteria.getCriteria())) {
                                     final BigDecimal score = featureCriteria.getScore().multiply(featureConfig.getWeightage());
@@ -186,7 +189,7 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                                 }
 
-                            } else {
+                            } else if (dataType.getValue().equalsIgnoreCase("numeric")) {
 
                                 final String criteria = featureCriteria.getCriteria().strip();
 
@@ -250,26 +253,13 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                 final MLScorecardFields loanScorecardFields = mlScorecard.getScorecardFields();
 
-                final Map<String, Object> predictionData = new HashMap<>();
-
-                predictionData.put("age", loanScorecardFields.getAge());
-                predictionData.put("sex", loanScorecardFields.getSex());
-                predictionData.put("job", loanScorecardFields.getJob());
-                predictionData.put("housing", loanScorecardFields.getHousing());
-                predictionData.put("credit_amount", loanScorecardFields.getCreditAmount());
-                predictionData.put("duration", loanScorecardFields.getDuration());
-                predictionData.put("purpose", loanScorecardFields.getPurpose());
+                final Map<String, Object> predictionData = this.setPredictionData(loanScorecardFields);
 
                 try {
 
-                    final AlgorithmsApi apiInstance = new AlgorithmsApi(new ApiClient());
+                    final AlgorithmsApi apiInstance = new AlgorithmsApi(this.creditScorecardClient);
 
-                    final String classifier = "RandomForestClassifier"; // String | The algorithm/classifier to use
-                    final String version = "0.0.1"; // String | Algorithm version
-                    final String dataset = "german"; // String | The name of the dataset
-                    final String status = "production"; // String | The status of the algorithm
-
-                    final PredictionResponse predictionResponse = apiInstance.algorithmsPredict(classifier, version, dataset, status,
+                    final PredictionResponse predictionResponse = apiInstance.algorithmsPredict(scoringModel, "0.0.1", null, null,
                             predictionData);
 
                     mlScorecard.setPredictionResponse(predictionResponse);
@@ -282,6 +272,22 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
 
                 final StatScorecard statScorecard = scorecard.getStatScorecard();
 
+                final MLScorecardFields loanScorecardFields = statScorecard.getScorecardFields();
+
+                final Map<String, Object> predictionData = this.setPredictionData(loanScorecardFields);
+
+                try {
+
+                    final AlgorithmsApi apiInstance = new AlgorithmsApi(new ApiClient());
+
+                    final PredictionResponse predictionResponse = apiInstance.algorithmsPredict(scoringModel, "0.0.1", null, null,
+                            predictionData);
+
+                    statScorecard.setPredictionResponse(predictionResponse);
+
+                } catch (ApiException e) {
+                    LOG.debug("An Error Occurred: {}", e.getLocalizedMessage());
+                }
             }
 
         } else {
@@ -292,6 +298,21 @@ public class CreditScorecardWritePlatformServiceImpl implements CreditScorecardW
         this.scorecardRepository.save(scorecard);
 
         return scorecard;
+    }
+
+    private Map<String, Object> setPredictionData(final MLScorecardFields fields) {
+
+        final Map<String, Object> predictionData = new HashMap<>();
+
+        predictionData.put("age", fields.getAge());
+        predictionData.put("sex", fields.getSex());
+        predictionData.put("job", fields.getJob());
+        predictionData.put("housing", fields.getHousing());
+        predictionData.put("credit_amount", fields.getCreditAmount());
+        predictionData.put("duration", fields.getDuration());
+        predictionData.put("purpose", fields.getPurpose());
+
+        return predictionData;
     }
 
     @Transactional

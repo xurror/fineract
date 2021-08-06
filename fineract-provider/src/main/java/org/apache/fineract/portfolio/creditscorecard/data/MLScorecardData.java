@@ -41,15 +41,17 @@ public class MLScorecardData implements Serializable {
     private final String risk;
     private final BigDecimal accuracy;
 
+    private final Collection<Map<String, Object>> scoringModels;
+
     private final Collection<Map<String, Object>> jobOptions;
     private final Collection<Map<String, Object>> genderOptions;
     private final Collection<Map<String, Object>> purposeOptions;
     private final Collection<Map<String, Object>> housingOptions;
 
     public MLScorecardData(Long id, Integer age, String sex, String job, String housing, BigDecimal creditAmount, Integer duration,
-            String purpose, String risk, BigDecimal accuracy, Collection<Map<String, Object>> jobOptions,
-            Collection<Map<String, Object>> genderOptions, Collection<Map<String, Object>> purposeOptions,
-            Collection<Map<String, Object>> housingOptions) {
+            String purpose, String risk, BigDecimal accuracy, Collection<Map<String, Object>> scoringModels,
+            Collection<Map<String, Object>> jobOptions, Collection<Map<String, Object>> genderOptions,
+            Collection<Map<String, Object>> purposeOptions, Collection<Map<String, Object>> housingOptions) {
         this.id = id;
         this.age = age;
         this.sex = sex;
@@ -66,10 +68,13 @@ public class MLScorecardData implements Serializable {
         this.genderOptions = genderOptions;
         this.purposeOptions = purposeOptions;
         this.housingOptions = housingOptions;
+        this.scoringModels = scoringModels;
     }
 
     public static MLScorecardData instance(final MLScorecard sc) {
         final MLScorecardFields scf = sc.getScorecardFields();
+
+        final Collection<Map<String, Object>> scoringModels = null;
 
         final Collection<Map<String, Object>> jobOptions = null;
         final Collection<Map<String, Object>> genderOptions = null;
@@ -77,14 +82,15 @@ public class MLScorecardData implements Serializable {
         final Collection<Map<String, Object>> housingOptions = null;
 
         return new MLScorecardData(sc.getId(), scf.getAge(), scf.getSex(), scf.getJob(), scf.getHousing(), scf.getCreditAmount(),
-                scf.getDuration(), scf.getPurpose(), sc.getPredictedRisk(), sc.getAccuracy(), jobOptions, genderOptions, purposeOptions,
-                housingOptions);
+                scf.getDuration(), scf.getPurpose(), sc.getPredictedRisk(), sc.getAccuracy(), scoringModels, jobOptions, genderOptions,
+                purposeOptions, housingOptions);
     }
 
-    public static MLScorecardData template(Integer age, String sex) {
+    public static MLScorecardData template() {
 
         final Long id = null;
-
+        final Integer age = null;
+        final String sex = null;
         final String job = null;
         final String housing = null;
 
@@ -94,6 +100,11 @@ public class MLScorecardData implements Serializable {
 
         final String risk = null;
         final BigDecimal accuracy = null;
+
+        final Collection<Map<String, Object>> scoringModels = new ArrayList<>(
+                Arrays.asList(Map.of("code", "RandomForestClassifier", "value", "Random Forest Classifier"),
+                        Map.of("code", "GradientBoostClassifier", "value", "Gradient Boost Classifier"),
+                        Map.of("code", "SVC", "value", "SVC"), Map.of("code", "MLP", "value", "MLP")));
 
         final Collection<Map<String, Object>> jobOptions = new ArrayList<>(
                 Arrays.asList(Map.of("code", 2, "value", "Unemployed"), Map.of("code", 3, "value", "Self-employed")));
@@ -108,8 +119,8 @@ public class MLScorecardData implements Serializable {
         final Collection<Map<String, Object>> genderOptions = new ArrayList<>(
                 Arrays.asList(Map.of("code", "male", "value", "Male"), Map.of("code", "female", "value", "Female")));
 
-        return new MLScorecardData(id, age, sex, job, housing, creditAmount, duration, purpose, risk, accuracy, jobOptions, genderOptions,
-                purposeOptions, housingOptions);
+        return new MLScorecardData(id, age, sex, job, housing, creditAmount, duration, purpose, risk, accuracy, scoringModels, jobOptions,
+                genderOptions, purposeOptions, housingOptions);
     }
 
 }

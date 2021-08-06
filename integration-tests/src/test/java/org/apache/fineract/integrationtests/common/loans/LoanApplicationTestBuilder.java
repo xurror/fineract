@@ -76,6 +76,8 @@ public class LoanApplicationTestBuilder {
     private List<HashMap<String, Object>> datatables = null;
     private List<Map<String, Object>> approvalFormData = null;
 
+    private HashMap<String, Object> scorecard = null;
+
     public String build(final String clientID, final String groupID, final String loanProductId, final String savingsID) {
         final HashMap<String, Object> map = new HashMap<>();
         map.put("groupId", groupID);
@@ -174,8 +176,16 @@ public class LoanApplicationTestBuilder {
         if (datatables != null) {
             map.put("datatables", this.datatables);
         }
+
+        map.put("scorecard", this.scorecard);
+
         LOG.info("Loan Application request : {} ", map);
         return new Gson().toJson(map);
+    }
+
+    public LoanApplicationTestBuilder withScorecard(final HashMap<String, Object> scorecard) {
+        this.scorecard = scorecard;
+        return this;
     }
 
     public LoanApplicationTestBuilder withPrincipal(final String principalAmount) {

@@ -29,6 +29,7 @@ import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeature
 import org.apache.fineract.portfolio.creditscorecard.data.MLScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.RuleBasedScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.data.ScorecardFeatureCriteriaData;
+import org.apache.fineract.portfolio.creditscorecard.data.StatScorecardData;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecard;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,8 +97,9 @@ public class CreditScorecardReadPlatformServiceImpl implements CreditScorecardRe
             break;
 
             case "stat":
-                // TODO: Implement Stat Algo
-                scorecardData = null;
+                final StatScorecardData statScorecardData = StatScorecardData.instance(scorecard.getStatScorecard());
+                scorecardData = CreditScorecardData.statInstance(scorecard.getId(), scorecard.getScoringMethod(),
+                        scorecard.getScoringModel(), statScorecardData);
             break;
 
             case "ruleBased":

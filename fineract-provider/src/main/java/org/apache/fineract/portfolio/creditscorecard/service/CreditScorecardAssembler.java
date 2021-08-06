@@ -69,8 +69,8 @@ public class CreditScorecardAssembler {
                 mlScorecard = this.assembleMLScorecard(element);
             }
 
-            if (scoringMethod.equalsIgnoreCase("statistical")) {
-                statScorecard = null;
+            if (scoringMethod.equalsIgnoreCase("stat")) {
+                statScorecard = this.assembleStatScorecard(element);
             }
 
             creditScorecard = new CreditScorecard(scoringMethod, scoringModel, ruleBasedScorecard, statScorecard, mlScorecard);
@@ -106,7 +106,8 @@ public class CreditScorecardAssembler {
                         final Long featureId = this.fromApiJsonHelper.extractLongNamed("featureId", criteriaScoreElement);
                         final String value = this.fromApiJsonHelper.extractStringNamed("value", criteriaScoreElement);
 
-                        final LoanProductScorecardFeature lpScorecardFeature = this.productFeatureRepository.findOneWithNotFoundDetection(featureId);
+                        final LoanProductScorecardFeature lpScorecardFeature = this.productFeatureRepository
+                                .findOneWithNotFoundDetection(featureId);
 
                         criteriaScores.add(new FeatureCriteriaScore(lpScorecardFeature, value));
 
@@ -122,6 +123,34 @@ public class CreditScorecardAssembler {
         ruleBasedScorecard.setCriteriaScores(criteriaScores);
 
         return ruleBasedScorecard;
+    }
+
+    public StatScorecard assembleStatScorecard(final JsonElement element) {
+
+        StatScorecard statScorecard = null;
+
+        if (element.isJsonObject()) {
+
+            final JsonObject topLevelJsonElement = element.getAsJsonObject();
+
+            final String dateFormat = this.fromApiJsonHelper.extractDateFormatParameter(topLevelJsonElement);
+            final Locale locale = this.fromApiJsonHelper.extractLocaleParameter(topLevelJsonElement);
+
+            final String statScorecardParameterName = "statScorecard";
+            if (topLevelJsonElement.has(statScorecardParameterName) && topLevelJsonElement.get(statScorecardParameterName).isJsonObject()) {
+                final JsonObject scorecardDataElement = topLevelJsonElement.getAsJsonObject(statScorecardParameterName);
+
+                statScorecard = new StatScorecard(
+                        new MLScorecardFields(this.fromApiJsonHelper.extractIntegerWithLocaleNamed("age", scorecardDataElement),
+                                this.fromApiJsonHelper.extractStringNamed("sex", scorecardDataElement),
+                                this.fromApiJsonHelper.extractStringNamed("job", scorecardDataElement),
+                                this.fromApiJsonHelper.extractStringNamed("housing", scorecardDataElement),
+                                this.fromApiJsonHelper.extractBigDecimalNamed("creditAmount", scorecardDataElement, locale),
+                                this.fromApiJsonHelper.extractIntegerNamed("duration", scorecardDataElement, locale),
+                                this.fromApiJsonHelper.extractStringNamed("purpose", scorecardDataElement)));
+            }
+        }
+        return statScorecard;
     }
 
     public MLScorecard assembleMLScorecard(final JsonElement element) {

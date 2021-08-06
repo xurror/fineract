@@ -36,14 +36,10 @@ public final class CreditScorecardData implements Serializable {
 
     // Options
     private final Collection<Map<String, Object>> scoringMethods;
-    private final Collection<Map<String, Object>> mlScoringModels;
-    private final Collection<Map<String, Object>> statScoringModels;
-    private final Collection<Map<String, Object>> ruleBasedScoringModels;
 
     private CreditScorecardData(final Long id, final String scoringMethod, final String scoringModel, final MLScorecardData mlScorecard,
             final StatScorecardData statScorecard, final RuleBasedScorecardData ruleBasedScorecard,
-            final Collection<Map<String, Object>> scoringMethods, final Collection<Map<String, Object>> mlScoringModels,
-            final Collection<Map<String, Object>> statScoringModels, final Collection<Map<String, Object>> ruleBasedScoringModels) {
+            final Collection<Map<String, Object>> scoringMethods) {
         this.id = id;
         this.scoringMethod = scoringMethod;
         this.scoringModel = scoringModel;
@@ -53,9 +49,6 @@ public final class CreditScorecardData implements Serializable {
         this.ruleBasedScorecard = ruleBasedScorecard;
 
         this.scoringMethods = scoringMethods;
-        this.mlScoringModels = mlScoringModels;
-        this.statScoringModels = statScoringModels;
-        this.ruleBasedScoringModels = ruleBasedScoringModels;
     }
 
     public static CreditScorecardData instance(final Long id, final String scoringMethod, final String scoringModel) {
@@ -64,12 +57,9 @@ public final class CreditScorecardData implements Serializable {
         final RuleBasedScorecardData ruleBasedScorecardData = null;
 
         final Collection<Map<String, Object>> scoringMethods = null;
-        final Collection<Map<String, Object>> mlScoringModels = null;
-        final Collection<Map<String, Object>> statScoringModels = null;
-        final Collection<Map<String, Object>> ruleBasedScoringModels = null;
 
         return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, statScorecardData, ruleBasedScorecardData,
-                scoringMethods, mlScoringModels, statScoringModels, ruleBasedScoringModels);
+                scoringMethods);
     }
 
     public static CreditScorecardData ruleBasedInstance(final Long id, final String scoringMethod, final String scoringModel,
@@ -78,12 +68,20 @@ public final class CreditScorecardData implements Serializable {
         final StatScorecardData statScorecardData = null;
 
         final Collection<Map<String, Object>> scoringMethods = null;
-        final Collection<Map<String, Object>> mlScoringModels = null;
-        final Collection<Map<String, Object>> statScoringModels = null;
-        final Collection<Map<String, Object>> ruleBasedScoringModels = null;
 
         return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, statScorecardData, ruleBasedScorecard,
-                scoringMethods, mlScoringModels, statScoringModels, ruleBasedScoringModels);
+                scoringMethods);
+    }
+
+    public static CreditScorecardData statInstance(Long id, String scoringMethod, String scoringModel,
+            StatScorecardData statScorecardData) {
+        final MLScorecardData mlScorecardData = null;
+        final RuleBasedScorecardData ruleBasedScorecardData = null;
+
+        final Collection<Map<String, Object>> scoringMethods = null;
+
+        return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, statScorecardData, ruleBasedScorecardData,
+                scoringMethods);
     }
 
     public static CreditScorecardData mlInstance(final Long id, final String scoringMethod, final String scoringModel,
@@ -92,12 +90,9 @@ public final class CreditScorecardData implements Serializable {
         final RuleBasedScorecardData ruleBasedScorecardData = null;
 
         final Collection<Map<String, Object>> scoringMethods = null;
-        final Collection<Map<String, Object>> mlScoringModels = null;
-        final Collection<Map<String, Object>> statScoringModels = null;
-        final Collection<Map<String, Object>> ruleBasedScoringModels = null;
 
         return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecard, statScorecardData, ruleBasedScorecardData,
-                scoringMethods, mlScoringModels, statScoringModels, ruleBasedScoringModels);
+                scoringMethods);
     }
 
     public static CreditScorecardData loanTemplate() {
@@ -105,26 +100,16 @@ public final class CreditScorecardData implements Serializable {
         final String scoringMethod = null;
         final String scoringModel = null;
 
-        final MLScorecardData mlScorecardData = MLScorecardData.template(null, null);
-        final StatScorecardData statScorecardData = null;
-        final RuleBasedScorecardData ruleBasedScorecardData = null;
+        final MLScorecardData mlScorecardData = MLScorecardData.template();
+        final StatScorecardData statScorecardData = StatScorecardData.template();
+        final RuleBasedScorecardData ruleBasedScorecardData = RuleBasedScorecardData.template();
 
         final Collection<Map<String, Object>> scoringMethods = new ArrayList<>(
                 Arrays.asList(Map.of("code", "ruleBased", "value", "Rule Based"), Map.of("code", "stat", "value", "Statistical"),
                         Map.of("code", "ml", "value", "Machine Learning")));
 
-        final Collection<Map<String, Object>> mlScoringModels = new ArrayList<>(
-                Arrays.asList(Map.of("code", "randomForest", "value", "Random Forest")));
-
-        final Collection<Map<String, Object>> statScoringModels = new ArrayList<>(Arrays.asList(
-                Map.of("code", "linearRegression", "value", "Linear Regression"),
-                Map.of("code", "polynomialRegression", "value", "Polynomial Regression"), Map.of("code", "manova", "value", "Manova")));
-
-        final Collection<Map<String, Object>> ruleBasedScoringModels = new ArrayList<>(
-                Arrays.asList(Map.of("code", "ruleBased", "value", "Rule Based")));
-
         return new CreditScorecardData(id, scoringMethod, scoringModel, mlScorecardData, statScorecardData, ruleBasedScorecardData,
-                scoringMethods, mlScoringModels, statScoringModels, ruleBasedScoringModels);
+                scoringMethods);
     }
 
     public static CreditScorecardData loanScorecardWithTemplate(CreditScorecardData sc) {
@@ -133,18 +118,15 @@ public final class CreditScorecardData implements Serializable {
                 Arrays.asList(Map.of("code", "ruleBased", "value", "Rule Based"), Map.of("code", "stat", "value", "Statistical"),
                         Map.of("code", "ml", "value", "Machine Learning")));
 
-        final Collection<Map<String, Object>> mlScoringModels = new ArrayList<>(
-                Arrays.asList(Map.of("code", "randomForest", "value", "Random Forest")));
+        final StatScorecardData statScorecardData = StatScorecardData.template();
+        final RuleBasedScorecardData ruleBasedScorecardData = RuleBasedScorecardData.template();
 
-        final Collection<Map<String, Object>> statScoringModels = new ArrayList<>(Arrays.asList(
-                Map.of("code", "linearRegression", "value", "Linear Regression"),
-                Map.of("code", "polynomialRegression", "value", "Polynomial Regression"), Map.of("code", "manova", "value", "Manova")));
-
-        final Collection<Map<String, Object>> ruleBasedScoringModels = new ArrayList<>(
-                Arrays.asList(Map.of("code", "ruleBased", "value", "Rule Based")));
+        if (sc == null) {
+            return null;
+        }
 
         return new CreditScorecardData(sc.id, sc.scoringMethod, sc.scoringModel, sc.mlScorecard, sc.statScorecard, sc.ruleBasedScorecard,
-                scoringMethods, mlScoringModels, statScoringModels, ruleBasedScoringModels);
+                scoringMethods);
     }
 
     public Long getId() {

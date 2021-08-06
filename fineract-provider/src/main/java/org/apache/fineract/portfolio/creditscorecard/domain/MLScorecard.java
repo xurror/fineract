@@ -24,7 +24,7 @@ import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import org.apache.fineract.cn.sekhmet.models.PredictionResponse;
+import org.apache.fineract.credit.scorecard.models.PredictionResponse;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity

@@ -232,7 +232,11 @@ public class LoanAssembler {
         }
 
         final JsonObject scorecardElement = this.fromApiJsonHelper.extractJsonObjectNamed("scorecard", element);
-        final CreditScorecard scorecard = this.scorecardAssembler.assembleFrom(scorecardElement);
+        CreditScorecard scorecard = null;
+
+        if (scorecardElement != null) {
+            scorecard = this.scorecardAssembler.assembleFrom(scorecardElement);
+        }
 
         Loan loanApplication = null;
         Client client = null;

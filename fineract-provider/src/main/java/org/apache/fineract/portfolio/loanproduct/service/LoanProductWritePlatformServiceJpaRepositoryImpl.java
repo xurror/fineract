@@ -45,7 +45,6 @@ import org.apache.fineract.portfolio.common.service.BusinessEventNotifierService
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
 import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeatureRepositoryWrapper;
 import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteria;
-import org.apache.fineract.portfolio.creditscorecard.domain.ScorecardFeatureCriteriaRepository;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRate;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRateRepositoryWrapper;
 import org.apache.fineract.portfolio.fund.domain.Fund;

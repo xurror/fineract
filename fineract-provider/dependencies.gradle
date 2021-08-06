@@ -79,8 +79,10 @@ dependencies {
             'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.3.2',
             'com.squareup.retrofit2:converter-gson',
             'com.sun.activation:jakarta.activation:1.2.2',
-            'org.apache.fineract.cn:sekhmet-java-client:1.0.0',
-            "io.gsonfire:gson-fire:1.8.0"
+            'org.apache.fineract:credit-scorecard-java-client',
+            "io.gsonfire:gson-fire",
+            'com.squareup.okhttp3:logging-interceptor',
+            'com.squareup.okhttp3:okhttp'
             )
     implementation ('jakarta.xml.bind:jakarta.xml.bind-api') {
         exclude group: 'jakarta.activation'

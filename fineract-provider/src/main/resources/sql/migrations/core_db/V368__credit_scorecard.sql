@@ -94,7 +94,20 @@ CREATE TABLE IF NOT EXISTS `m_scorecard_feature_criteria_score` (
 
 CREATE TABLE `m_stat_scorecard` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-
+    `age` INT DEFAULT NULL,
+    `sex` VARCHAR(50) DEFAULT NULL,
+    `job` VARCHAR(50) DEFAULT NULL,
+    `housing` VARCHAR(50) DEFAULT NULL,
+    `credit_amount` DECIMAL(19, 6) NOT NULL DEFAULT '0.000000',
+    `duration` INT DEFAULT NULL,
+    `purpose` VARCHAR(50) DEFAULT NULL,
+    `method` VARCHAR(50) DEFAULT NULL,
+    `color` VARCHAR(50) DEFAULT NULL,
+    `prediction` DECIMAL(19, 6) DEFAULT NULL,
+    `wilki_s_lambda` DECIMAL(19, 6) DEFAULT NULL,
+    `pillai_s_trace` DECIMAL(19, 6) DEFAULT NULL,
+    `hotelling_lawley_trace` DECIMAL(19, 6) DEFAULT NULL,
+    `roy_s_greatest_roots` DECIMAL(19, 6) DEFAULT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8MB4;
 

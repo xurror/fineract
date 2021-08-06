@@ -249,7 +249,54 @@ public class CreditScorecardApiJsonHelper {
 
     }
 
-    private void validateStatScorecardJson(final JsonElement element) {}
+    private void validateStatScorecardJson(final JsonElement element) {
+
+        final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
+        final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("statScorecard");
+
+        final String statScorecardParameterName = "statScorecard";
+        if (element.isJsonObject() && this.fromApiJsonHelper.parameterExists(statScorecardParameterName, element)) {
+            final JsonObject topLevelJsonElement = element.getAsJsonObject();
+
+            if (topLevelJsonElement.get(statScorecardParameterName).isJsonObject()) {
+                final Type arrayObjectParameterTypeOfMap = new TypeToken<Map<String, Object>>() {}.getType();
+                final Set<String> supportedParameters = new HashSet<>(
+                        Arrays.asList("age", "sex", "job", "housing", "creditAmount", "duration", "purpose", "locale", "dateFormat"));
+
+                final JsonObject statScorecardElement = topLevelJsonElement.getAsJsonObject(statScorecardParameterName);
+                this.fromApiJsonHelper.checkForUnsupportedParameters(arrayObjectParameterTypeOfMap,
+                        this.fromApiJsonHelper.toJson(statScorecardElement), supportedParameters);
+
+                final Integer age = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("age", statScorecardElement);
+                baseDataValidator.reset().parameter("age").value(age).ignoreIfNull().integerGreaterThanZero();
+
+                final String sex = this.fromApiJsonHelper.extractStringNamed("sex", statScorecardElement);
+                baseDataValidator.reset().parameter("sex").value(sex).ignoreIfNull().notExceedingLengthOf(100);
+
+                final String job = this.fromApiJsonHelper.extractStringNamed("job", statScorecardElement);
+                baseDataValidator.reset().parameter("job").value(job).ignoreIfNull().notExceedingLengthOf(100);
+
+                final String housing = this.fromApiJsonHelper.extractStringNamed("housing", statScorecardElement);
+                baseDataValidator.reset().parameter("housing").value(housing).ignoreIfNull().notExceedingLengthOf(100);
+
+                final BigDecimal creditAmount = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("creditAmount",
+                        statScorecardElement);
+                baseDataValidator.reset().parameter("creditAmount").value(creditAmount).notNull().positiveAmount();
+
+                final Integer duration = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("duration", statScorecardElement);
+                baseDataValidator.reset().parameter("duration").value(duration).ignoreIfNull().integerGreaterThanZero();
+
+                final String purpose = this.fromApiJsonHelper.extractStringNamed("purpose", statScorecardElement);
+                baseDataValidator.reset().parameter("purpose").value(purpose).ignoreIfNull().notExceedingLengthOf(100);
+
+            }
+        }
+
+        if (!dataValidationErrors.isEmpty()) {
+            throw new PlatformApiDataValidationException(dataValidationErrors);
+        }
+
+    }
 
     private void validateMLScorecardJson(final JsonElement element) {
 

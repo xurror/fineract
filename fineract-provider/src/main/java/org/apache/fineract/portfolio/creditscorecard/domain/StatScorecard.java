@@ -18,15 +18,130 @@
  */
 package org.apache.fineract.portfolio.creditscorecard.domain;
 
+import java.math.BigDecimal;
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import org.apache.fineract.credit.scorecard.models.PredictionResponse;
 import org.apache.fineract.infrastructure.core.domain.AbstractPersistableCustom;
 
 @Entity
 @Table(name = "m_stat_scorecard")
 public class StatScorecard extends AbstractPersistableCustom {
 
+    @Embedded
+    private MLScorecardFields scorecardFields;
+
+    @Column(name = "method")
+    private String method;
+
+    @Column(name = "color")
+    private String color;
+
+    @Column(name = "prediction")
+    private BigDecimal prediction;
+
+    @Column(name = "wilki_s_lambda")
+    private BigDecimal wilkisLambda;
+
+    @Column(name = "pillai_s_trace")
+    private BigDecimal pillaisTrace;
+
+    @Column(name = "hotelling_lawley_trace")
+    private BigDecimal hotellingLawley;
+
+    @Column(name = "roy_s_greatest_roots")
+    private BigDecimal roysGreatestRoots;
+
     public StatScorecard() {
         //
+    }
+
+    public StatScorecard(String method, String color, BigDecimal prediction, BigDecimal wilkisLambda, BigDecimal pillaisTrace,
+            BigDecimal hotellingLawley, BigDecimal roysGreatestRoots) {
+        this.method = method;
+        this.color = color;
+        this.prediction = prediction;
+        this.wilkisLambda = wilkisLambda;
+        this.pillaisTrace = pillaisTrace;
+        this.hotellingLawley = hotellingLawley;
+        this.roysGreatestRoots = roysGreatestRoots;
+    }
+
+    public StatScorecard(final MLScorecardFields mlScorecardFields) {
+        this.scorecardFields = mlScorecardFields;
+    }
+
+    public void setPredictionResponse(final PredictionResponse response) {
+        this.method = response.getMethod();
+        this.color = response.getColor();
+        this.prediction = BigDecimal.valueOf(response.getProbability());
+        if (this.method.equalsIgnoreCase("manova")) {
+            this.wilkisLambda = BigDecimal.valueOf(response.getWilkisLambda());
+            this.pillaisTrace = BigDecimal.valueOf(response.getPillaisTrace());
+            this.hotellingLawley = BigDecimal.valueOf(response.getHotellingTawley());
+            this.roysGreatestRoots = BigDecimal.valueOf(response.getRoysReatestRoots());
+        }
+    }
+
+    public MLScorecardFields getScorecardFields() {
+        return scorecardFields;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public BigDecimal getPrediction() {
+        return prediction;
+    }
+
+    public BigDecimal getWilkisLambda() {
+        return wilkisLambda;
+    }
+
+    public BigDecimal getPillaisTrace() {
+        return pillaisTrace;
+    }
+
+    public BigDecimal getHotellingLawley() {
+        return hotellingLawley;
+    }
+
+    public BigDecimal getRoysGreatestRoots() {
+        return roysGreatestRoots;
+    }
+
+    @Override
+    public String toString() {
+        return "StatScorecard{" + "scorecardFields=" + scorecardFields + ", method='" + method + '\'' + ", color='" + color + '\''
+                + ", prediction=" + prediction + ", wilkisLambda=" + wilkisLambda + ", pillaisTrace=" + pillaisTrace + ", hotellingLawley="
+                + hotellingLawley + ", roysGreatestRoots=" + roysGreatestRoots + '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof StatScorecard)) {
+            return false;
+        }
+        StatScorecard that = (StatScorecard) o;
+        return Objects.equals(scorecardFields, that.scorecardFields) && Objects.equals(method, that.method)
+                && Objects.equals(color, that.color) && Objects.equals(prediction, that.prediction)
+                && Objects.equals(wilkisLambda, that.wilkisLambda) && Objects.equals(pillaisTrace, that.pillaisTrace)
+                && Objects.equals(hotellingLawley, that.hotellingLawley) && Objects.equals(roysGreatestRoots, that.roysGreatestRoots);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(scorecardFields, method, color, prediction, wilkisLambda, pillaisTrace, hotellingLawley, roysGreatestRoots);
     }
 }
