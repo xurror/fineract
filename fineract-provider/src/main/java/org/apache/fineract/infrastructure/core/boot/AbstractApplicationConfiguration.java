@@ -45,9 +45,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  */
 @Configuration
 @Import({ WebXmlConfiguration.class, WebXmlOauthConfiguration.class, WebFrontEndConfiguration.class, MessagingConfiguration.class,
-        WebTwoFactorXmlConfiguration.class })
+        WebTwoFactorXmlConfiguration.class, CreditScorecardApiClientConfiguration.class })
 @ImportResource({ "classpath*:META-INF/spring/appContext.xml" })
-@PropertySource(value = "classpath:META-INF/spring/jdbc.properties")
+@PropertySource(value = { "classpath:META-INF/spring/jdbc.properties", "classpath:META-INF/spring/scorecardClient.properties" })
 @EnableAutoConfiguration(exclude = { DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
         DataSourceTransactionManagerAutoConfiguration.class, FlywayAutoConfiguration.class, GsonAutoConfiguration.class,
         JdbcTemplateAutoConfiguration.class })

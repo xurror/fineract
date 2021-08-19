@@ -98,6 +98,9 @@ import org.apache.fineract.portfolio.charge.service.ChargeReadPlatformService;
 import org.apache.fineract.portfolio.client.data.ClientData;
 import org.apache.fineract.portfolio.collateral.data.CollateralData;
 import org.apache.fineract.portfolio.collateral.service.CollateralReadPlatformService;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardData;
+import org.apache.fineract.portfolio.creditscorecard.data.CreditScorecardFeatureData;
+import org.apache.fineract.portfolio.creditscorecard.service.CreditScorecardReadPlatformService;
 import org.apache.fineract.portfolio.floatingrates.data.InterestRatePeriodData;
 import org.apache.fineract.portfolio.fund.data.FundData;
 import org.apache.fineract.portfolio.fund.service.FundReadPlatformService;
@@ -253,6 +256,7 @@ public class LoansApiResource {
     private final ConfigurationDomainService configurationDomainService;
     private final DefaultToApiJsonSerializer<GlimRepaymentTemplate> glimTemplateToApiJsonSerializer;
     private final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService;
+    private final CreditScorecardReadPlatformService scorecardReadPlatformService;
 
     @Autowired
     public LoansApiResource(final PlatformSecurityContext context, final LoanReadPlatformService loanReadPlatformService,
@@ -278,7 +282,8 @@ public class LoansApiResource {
             final BulkImportWorkbookPopulatorService bulkImportWorkbookPopulatorService, final RateReadService rateReadService,
             final ConfigurationDomainService configurationDomainService,
             final DefaultToApiJsonSerializer<GlimRepaymentTemplate> glimTemplateToApiJsonSerializer,
-            final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService) {
+            final GLIMAccountInfoReadPlatformService glimAccountInfoReadPlatformService,
+            final CreditScorecardReadPlatformService scorecardReadPlatformService) {
         this.context = context;
         this.loanReadPlatformService = loanReadPlatformService;
         this.loanProductReadPlatformService = loanProductReadPlatformService;
@@ -310,6 +315,7 @@ public class LoansApiResource {
         this.configurationDomainService = configurationDomainService;
         this.glimTemplateToApiJsonSerializer = glimTemplateToApiJsonSerializer;
         this.glimAccountInfoReadPlatformService = glimAccountInfoReadPlatformService;
+        this.scorecardReadPlatformService = scorecardReadPlatformService;
     }
 
     /*
@@ -447,10 +453,12 @@ public class LoansApiResource {
                 accountLinkingOptions = getaccountLinkingOptions(newLoanAccount, clientId, groupId);
             }
 
+            final CreditScorecardData scorecard = this.scorecardReadPlatformService.loanScorecardTemplate();
+
             // add product options, allowed loan officers and calendar options
             // (calendar options will be null in individual loan)
             newLoanAccount = LoanAccountData.associationsAndTemplate(newLoanAccount, productOptions, allowedLoanOfficers, calendarOptions,
-                    accountLinkingOptions, isRatesEnabled);
+                    accountLinkingOptions, isRatesEnabled, scorecard);
         }
         final List<DatatableData> datatableTemplates = this.entityDatatableChecksReadService
                 .retrieveTemplates(StatusEnum.CREATE.getCode().longValue(), EntityTables.LOAN.getName(), productId);
@@ -493,6 +501,11 @@ public class LoansApiResource {
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
         LoanAccountData loanBasicDetails = this.loanReadPlatformService.retrieveOne(loanId);
+
+        final CreditScorecardData scorecard = this.scorecardReadPlatformService.retrieveCreditScorecard(loanBasicDetails.getScorecardId());
+
+        loanBasicDetails = LoanAccountData.populateScorecardDetails(loanBasicDetails, scorecard);
+
         if (loanBasicDetails.isInterestRecalculationEnabled()) {
             Collection<CalendarData> interestRecalculationCalendarDatas = this.calendarReadPlatformService.retrieveCalendarsByEntity(
                     loanBasicDetails.getInterestRecalculationDetailId(), CalendarEntityType.LOAN_RECALCULATION_REST_DETAIL.getValue(),
@@ -724,13 +737,20 @@ public class LoansApiResource {
             rates = this.rateReadService.retrieveLoanRates(loanId);
         }
 
+        final Collection<CreditScorecardFeatureData> scorecardFeatures = null;
+
+        final Collection<CreditScorecardFeatureData> scorecardFeatureOptions = null;
+
+        final CreditScorecardData scorecardWithTemplate = this.scorecardReadPlatformService.loanScorecardTemplate(scorecard);
+
         final LoanAccountData loanAccount = LoanAccountData.associationsAndTemplate(loanBasicDetails, repaymentSchedule, loanRepayments,
                 charges, collateral, guarantors, meeting, productOptions, loanTermFrequencyTypeOptions, repaymentFrequencyTypeOptions,
                 repaymentFrequencyNthDayTypeOptions, repaymentFrequencyDayOfWeekTypeOptions, repaymentStrategyOptions,
                 interestRateFrequencyTypeOptions, amortizationTypeOptions, interestTypeOptions, interestCalculationPeriodTypeOptions,
                 fundOptions, chargeOptions, chargeTemplate, allowedLoanOfficers, loanPurposeOptions, loanCollateralOptions, calendarOptions,
                 notes, accountLinkingOptions, linkedAccount, disbursementData, emiAmountVariations, overdueCharges, paidInAdvanceTemplate,
-                interestRatesPeriods, clientActiveLoanOptions, rates, isRatesEnabled);
+                interestRatesPeriods, clientActiveLoanOptions, rates, isRatesEnabled, scorecardFeatures, scorecardFeatureOptions,
+                scorecardWithTemplate);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters(),
                 mandatoryResponseParameters);

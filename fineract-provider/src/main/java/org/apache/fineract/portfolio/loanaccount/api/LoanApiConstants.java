@@ -132,4 +132,8 @@ public interface LoanApiConstants {
     String applicationId = "applicationId";
     String lastApplication = "lastApplication";
 
+    String recalculationCompoundingFrequencyDate = "recalculationCompoundingFrequencyDate";
+
+    String scorecard = "scorecard";
+
 }

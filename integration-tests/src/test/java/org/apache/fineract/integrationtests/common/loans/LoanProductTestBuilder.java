@@ -125,6 +125,8 @@ public class LoanProductTestBuilder {
     private Integer recalculationRestFrequencyDayOfWeekType = null;
     private boolean syncExpectedWithDisbursementDate = false;
 
+    private ArrayList<HashMap<String, Object>> scorecardFeatures = null;
+
     public String build(final String chargeId) {
         final HashMap<String, Object> map = new HashMap<>();
 
@@ -212,7 +214,13 @@ public class LoanProductTestBuilder {
             map.put("maximumGap", maximumGap);
         }
         map.put("syncExpectedWithDisbursementDate", this.syncExpectedWithDisbursementDate);
+        map.put("scorecardFeatures", this.scorecardFeatures);
         return new Gson().toJson(map);
+    }
+
+    public LoanProductTestBuilder withScorecardFeatures(final ArrayList<HashMap<String, Object>> scorecardFeatures) {
+        this.scorecardFeatures = scorecardFeatures;
+        return this;
     }
 
     public LoanProductTestBuilder withMinPrincipal(final String minPrincipal) {

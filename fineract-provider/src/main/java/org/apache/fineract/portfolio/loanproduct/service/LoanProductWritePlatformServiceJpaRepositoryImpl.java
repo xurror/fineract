@@ -20,6 +20,7 @@ package org.apache.fineract.portfolio.loanproduct.service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,6 +42,9 @@ import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants;
 import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEntity;
 import org.apache.fineract.portfolio.common.BusinessEventNotificationConstants.BusinessEvents;
 import org.apache.fineract.portfolio.common.service.BusinessEventNotifierService;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeature;
+import org.apache.fineract.portfolio.creditscorecard.domain.CreditScorecardFeatureRepositoryWrapper;
+import org.apache.fineract.portfolio.creditscorecard.domain.FeatureCriteria;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRate;
 import org.apache.fineract.portfolio.floatingrates.domain.FloatingRateRepositoryWrapper;
 import org.apache.fineract.portfolio.fund.domain.Fund;
@@ -53,6 +57,7 @@ import org.apache.fineract.portfolio.loanaccount.loanschedule.domain.AprCalculat
 import org.apache.fineract.portfolio.loanproduct.LoanProductConstants;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProduct;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductRepository;
+import org.apache.fineract.portfolio.loanproduct.domain.LoanProductScorecardFeature;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanTransactionProcessingStrategy;
 import org.apache.fineract.portfolio.loanproduct.exception.InvalidCurrencyException;
 import org.apache.fineract.portfolio.loanproduct.exception.LoanProductCannotBeModifiedDueToNonClosedLoansException;
@@ -86,6 +91,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
     private final FloatingRateRepositoryWrapper floatingRateRepository;
     private final LoanRepositoryWrapper loanRepositoryWrapper;
     private final BusinessEventNotifierService businessEventNotifierService;
+    private final CreditScorecardFeatureRepositoryWrapper scorecardFeatureRepository;
 
     @Autowired
     public LoanProductWritePlatformServiceJpaRepositoryImpl(final PlatformSecurityContext context,
@@ -95,7 +101,8 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
             final ChargeRepositoryWrapper chargeRepository, final RateRepositoryWrapper rateRepository,
             final ProductToGLAccountMappingWritePlatformService accountMappingWritePlatformService,
             final FineractEntityAccessUtil fineractEntityAccessUtil, final FloatingRateRepositoryWrapper floatingRateRepository,
-            final LoanRepositoryWrapper loanRepositoryWrapper, final BusinessEventNotifierService businessEventNotifierService) {
+            final LoanRepositoryWrapper loanRepositoryWrapper, final BusinessEventNotifierService businessEventNotifierService,
+            final CreditScorecardFeatureRepositoryWrapper scorecardFeatureRepository) {
         this.context = context;
         this.fromApiJsonDeserializer = fromApiJsonDeserializer;
         this.loanProductRepository = loanProductRepository;
@@ -109,6 +116,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
         this.floatingRateRepository = floatingRateRepository;
         this.loanRepositoryWrapper = loanRepositoryWrapper;
         this.businessEventNotifierService = businessEventNotifierService;
+        this.scorecardFeatureRepository = scorecardFeatureRepository;
     }
 
     @Transactional
@@ -131,6 +139,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
             final String currencyCode = command.stringValueOfParameterNamed("currencyCode");
             final List<Charge> charges = assembleListOfProductCharges(command, currencyCode);
             final List<Rate> rates = assembleListOfProductRates(command);
+            final List<LoanProductScorecardFeature> scorecardFeatures = assembleListOfProductScoringFeatures(command, null);
 
             FloatingRate floatingRate = null;
             if (command.parameterExists("floatingRatesId")) {
@@ -138,7 +147,7 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                         .findOneWithNotFoundDetection(command.longValueOfParameterNamed("floatingRatesId"));
             }
             final LoanProduct loanproduct = LoanProduct.assembleFromJson(fund, loanTransactionProcessingStrategy, charges, command,
-                    this.aprCalculator, floatingRate, rates);
+                    this.aprCalculator, floatingRate, rates, scorecardFeatures);
             loanproduct.updateLoanProductInRelatedClasses();
 
             this.loanProductRepository.save(loanproduct);
@@ -251,6 +260,14 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
                 }
             }
 
+            if (changes.containsKey("scorecardFeatures")) {
+                final List<LoanProductScorecardFeature> scorecardFeatures = assembleListOfProductScoringFeatures(command, product);
+                final boolean updated = product.updateScorecardFeatures(scorecardFeatures);
+                if (!updated) {
+                    changes.remove("scorecardFeatures");
+                }
+            }
+
             if (!changes.isEmpty()) {
                 this.loanProductRepository.saveAndFlush(product);
             }
@@ -313,6 +330,66 @@ public class LoanProductWritePlatformServiceJpaRepositoryImpl implements LoanPro
         }
 
         return charges;
+    }
+
+    private List<LoanProductScorecardFeature> assembleListOfProductScoringFeatures(final JsonCommand command, LoanProduct loanProduct) {
+
+        final List<LoanProductScorecardFeature> loanProductFeatures = new ArrayList<>();
+
+        // JsonCommand incentivesCommand = JsonCommand.fromExistingCommand(command, incentiveElement);
+        // chartSlab.slabFields().validateChartSlabPlatformRules(chartSlabsCommand, baseDataValidator, locale);
+
+        if (command.parameterExists("scorecardFeatures")) {
+            final JsonArray featuresArray = command.arrayOfParameterNamed("scorecardFeatures");
+            if (featuresArray != null) {
+                for (int i = 0; i < featuresArray.size(); i++) {
+
+                    final JsonObject jsonObject = featuresArray.get(i).getAsJsonObject();
+                    if (jsonObject.has("featureId")) {
+                        final Long id = jsonObject.get("featureId").getAsLong();
+
+                        final BigDecimal weightage = jsonObject.get("weightage").getAsBigDecimal();
+                        final Integer greenMin = jsonObject.get("greenMin").getAsInt();
+                        final Integer greenMax = jsonObject.get("greenMax").getAsInt();
+                        final Integer amberMin = jsonObject.get("amberMin").getAsInt();
+                        final Integer amberMax = jsonObject.get("amberMax").getAsInt();
+                        final Integer redMin = jsonObject.get("redMin").getAsInt();
+                        final Integer redMax = jsonObject.get("redMax").getAsInt();
+
+                        final List<FeatureCriteria> criteria = this
+                                .assembleListOfProductScoringFeatureCriteriaScores(jsonObject.get("criteriaScores").getAsJsonArray());
+
+                        final CreditScorecardFeature feature = this.scorecardFeatureRepository.findOneWithNotFoundDetection(id);
+
+                        final LoanProductScorecardFeature loanProductFeature = new LoanProductScorecardFeature(feature, weightage, greenMin,
+                                greenMax, amberMin, amberMax, redMin, redMax);
+
+                        loanProductFeature.setFeatureCriteria(criteria);
+                        loanProductFeatures.add(loanProductFeature);
+                    }
+                }
+            }
+        }
+
+        return loanProductFeatures;
+    }
+
+    private List<FeatureCriteria> assembleListOfProductScoringFeatureCriteriaScores(final JsonArray jsonArray) {
+
+        final List<FeatureCriteria> featureCriteria = new ArrayList<>();
+
+        if (jsonArray != null) {
+            for (int i = 0; i < jsonArray.size(); i++) {
+
+                final JsonObject jsonObject = jsonArray.get(i).getAsJsonObject();
+                final BigDecimal score = jsonObject.get("score").getAsBigDecimal();
+                final String scoreCriteria = jsonObject.get("criteria").getAsString();
+
+                featureCriteria.add(new FeatureCriteria(scoreCriteria, score));
+            }
+        }
+
+        return featureCriteria;
     }
 
     private List<Rate> assembleListOfProductRates(final JsonCommand command) {
