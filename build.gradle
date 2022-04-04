@@ -108,8 +108,8 @@ allprojects  {
     // https://github.com/spring-gradle-plugins/dependency-management-plugin
     dependencyManagement {
         imports {
-            mavenBom 'org.springframework:spring-framework-bom:5.3.14'
-            mavenBom 'org.springframework.boot:spring-boot-dependencies:2.6.2'
+            mavenBom 'org.springframework:spring-framework-bom:5.3.18'
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:2.6.6'
             mavenBom 'org.junit:junit-bom:5.8.1'
         }
 
