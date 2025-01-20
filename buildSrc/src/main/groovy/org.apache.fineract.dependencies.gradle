@@ -152,7 +152,7 @@ dependencyManagement {
         dependency 'org.bouncycastle:bcpg-jdk15on:1.70'
 
         dependency 'org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r'
-        dependency 'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:6.4.0.202211300538-r'
+        dependency 'org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.1.0.202411261347-r'
 
         dependency 'org.tmatesoft.svnkit:svnkit:1.10.9'
         dependency 'com.vdurmont:semver4j:3.1.0'
