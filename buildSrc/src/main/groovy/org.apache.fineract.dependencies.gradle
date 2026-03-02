@@ -64,7 +64,7 @@ dependencyManagement {
         dependency 'com.amazonaws:aws-java-sdk-s3:1.12.367'
         dependency 'org.ehcache:ehcache:3.10.8'
         dependency 'com.github.spullara.mustache.java:compiler:0.9.10'
-        dependency 'com.jayway.jsonpath:json-path:2.7.0'
+        dependency 'com.jayway.jsonpath:json-path:3.0.0'
         dependency 'org.apache.tika:tika-core:2.6.0'
         dependency ('org.apache.tika:tika-parser-microsoft-module:2.6.0') {
             exclude 'org.bouncycastle:bcprov-jdk15on'
